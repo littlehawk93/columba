@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/littlehawk93/columba/config"
+	"github.com/littlehawk93/columba/tracking"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -54,4 +55,13 @@ func initConfig() {
 
 func run(cmd *cobra.Command, args []string) {
 
+	db, err := configuration.Database.Open()
+
+	if err != nil {
+		log.Fatalf("Unable to open database: %s\n", err.Error())
+	}
+
+	if err = tracking.Migrate(db); err != nil {
+		log.Fatalf("Unable to set up database: %s\n", err.Error())
+	}
 }

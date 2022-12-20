@@ -1,7 +1,8 @@
 package tracking
 
 type Location struct {
-	City  string
-	State string
-	Zip   string
+	Facility string
+	City     string
+	State    string
+	Zip      string
 }
