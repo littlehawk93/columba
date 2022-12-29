@@ -1,0 +1,145 @@
+import React from "react"
+import Box from "@mui/material/Box"
+import Grid from "@mui/material/Grid"
+import TextField from "@mui/material/TextField"
+import ServiceSelect from "../Service/ServiceSelect"
+import Fab from "@mui/material/Fab"
+import Button from "@mui/material/Button"
+import AddIcon from "@mui/icons-material/Add"
+import Hidden from "@mui/material/Hidden"
+import { ErrorContext } from "../../Context/Error"
+
+class NewPackageForm extends React.Component
+{
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            label: {
+                error: "",
+                value: ""
+            },
+            trackingNum: {
+                error: "",
+                value: ""
+            },
+            service: {
+                error: "",
+                value: ""
+            }
+        }
+    }
+
+    onChange = (e) => {
+
+        const { value } = e.target;
+        const { name } = e.target;
+
+        if (name === "np-label") {
+            this.setState({
+                label: {
+                    error: "",
+                    value: value
+                }
+            });
+        } else if (name === "np-trackingnum") {
+            this.setState({
+                trackingNum: {
+                    error: value === "" ? "Tracking number cannot be blank" : "",
+                    value: value
+                }
+            });
+        } else if (name === "np-serviceprovider") {
+            this.setState({
+                service: {
+                    error: value === "" ? "You must select a Service Provider" : "",
+                    value: value
+                }
+            });
+        }
+    }
+
+    render() {
+
+        return (
+            <Box component="form" autoComplete="off">
+                <Grid container spacing={2}>
+                    <Grid item xs={12} sm={5} md={3} lg={3}>
+                        <TextField 
+                            fullWidth
+                            size="small"
+                            error={this.state.label.error !== ""}
+                            id="new-package-label"
+                            name="np-label"
+                            value={this.state.label.value}
+                            placeholder="e.g. Mom's Christmas Present"
+                            label="Label (Optional)"
+                            helperText={this.state.label.error}
+                            variant="filled"
+                            onChange={this.onChange}
+                        />
+                    </Grid>
+                    <Grid item xs={12} sm={7} md={4} lg={4}>
+                        <TextField 
+                            fullWidth
+                            size="small"
+                            error={this.state.trackingNum.error !== ""}
+                            id="new-package-trackingnum"
+                            name="np-trackingnum"
+                            value={this.state.trackingNum.value}
+                            placeholder="Enter Tracking Number"
+                            label="Tracking Number"
+                            variant="filled"
+                            onChange={this.onChange}
+                        />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={2} lg={2}>
+                        <ServiceSelect 
+                            fullWidth
+                            size="small"
+                            error={this.state.service.error !== ""}
+                            id="new-package-service"
+                            name="np-service"
+                            value={this.state.service.value}
+                            label="Service"
+                            helperText={this.state.service.error}
+                            variant="filled"
+                            onChange={this.onChange}
+                        />
+                    </Grid>
+                    <Grid item xs={12} sm={3} md={1} lg={1} alignItems="flex-end">
+                        <Hidden mdDown>
+                            <Fab 
+                                size="medium"
+                                color="primary" 
+                                aria-label="Add Package"
+                            >
+                                <AddIcon />
+                            </Fab>
+                        </Hidden>
+                        <Hidden mdUp>
+                            <Button
+                                size="large"
+                                variant="contained"
+                                color="primary"
+                                aria-label="Add Package"
+                                startIcon={<AddIcon />}
+                            >
+                                Add Package
+                            </Button>
+                        </Hidden>
+                    </Grid>
+                </Grid>
+            </Box>
+        );
+    }
+}
+
+export default function FNewPackageForm(props) {
+
+    return (
+        <ErrorContext.Consumer>
+            {error => <NewPackageForm onError={error.onError} {...props} />}
+        </ErrorContext.Consumer>
+    )
+}
