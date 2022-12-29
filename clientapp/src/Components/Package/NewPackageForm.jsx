@@ -49,7 +49,7 @@ class NewPackageForm extends React.Component
                     value: value
                 }
             });
-        } else if (name === "np-serviceprovider") {
+        } else if (name === "np-service") {
             this.setState({
                 service: {
                     error: value === "" ? "You must select a Service Provider" : "",
@@ -57,6 +57,39 @@ class NewPackageForm extends React.Component
                 }
             });
         }
+    }
+
+    onSubmit = (e) => {
+
+        var labelValue = this.state.label.value.trim();
+        var trackingNumValue = this.state.trackingNum.value.trim();
+        var serviceValue = this.state.service.value.trim();
+
+        if(trackingNumValue === "") {
+            this.setState({
+                trackingNum: {
+                    error: "Tracking number cannot be blank",
+                    value: trackingNumValue
+                }
+            });
+            return;
+        } else if (serviceValue === "") {
+            this.setState({
+                service: {
+                    error: "You must select a Service Provider",
+                    value: serviceValue
+                }
+            });
+            return;
+        }
+
+        var pkg = {
+            label: labelValue,
+            tracking_number: trackingNumValue,
+            service: serviceValue
+        };
+
+        console.log(pkg);
     }
 
     render() {
@@ -69,14 +102,15 @@ class NewPackageForm extends React.Component
                             fullWidth
                             size="small"
                             error={this.state.label.error !== ""}
+                            helperText={this.state.label.error}
                             id="new-package-label"
                             name="np-label"
                             value={this.state.label.value}
-                            placeholder="e.g. Mom's Christmas Present"
+                            placeholder="e.g. Mom's Gift"
                             label="Label (Optional)"
-                            helperText={this.state.label.error}
                             variant="filled"
                             onChange={this.onChange}
+                            
                         />
                     </Grid>
                     <Grid item xs={12} sm={7} md={4} lg={4}>
@@ -84,6 +118,7 @@ class NewPackageForm extends React.Component
                             fullWidth
                             size="small"
                             error={this.state.trackingNum.error !== ""}
+                            helperText={this.state.trackingNum.error}
                             id="new-package-trackingnum"
                             name="np-trackingnum"
                             value={this.state.trackingNum.value}
@@ -98,11 +133,11 @@ class NewPackageForm extends React.Component
                             fullWidth
                             size="small"
                             error={this.state.service.error !== ""}
+                            helperText={this.state.service.error}
                             id="new-package-service"
                             name="np-service"
                             value={this.state.service.value}
                             label="Service"
-                            helperText={this.state.service.error}
                             variant="filled"
                             onChange={this.onChange}
                         />
@@ -110,6 +145,7 @@ class NewPackageForm extends React.Component
                     <Grid item xs={12} sm={3} md={1} lg={1} alignItems="flex-end">
                         <Hidden mdDown>
                             <Fab 
+                                onClick={this.onSubmit}
                                 size="medium"
                                 color="primary" 
                                 aria-label="Add Package"
@@ -119,6 +155,7 @@ class NewPackageForm extends React.Component
                         </Hidden>
                         <Hidden mdUp>
                             <Button
+                                onClick={this.onSubmit}
                                 size="large"
                                 variant="contained"
                                 color="primary"

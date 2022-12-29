@@ -29,12 +29,10 @@ class ServiceSelect extends React.Component
 
         const { options } = this.state;
 
-        const { value } = this.props;
-
         return (
             <TextField select {...this.props}>
                 {options && (options.map((option) => {
-                    return (<MenuItem key={option} value={option} selected={option === value}>{option}</MenuItem>);
+                    return (<MenuItem key={option} value={option}>{option}</MenuItem>);
                 }))}
             </TextField>
         )
