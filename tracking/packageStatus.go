@@ -1,6 +1,6 @@
 package tracking
 
-type PackageStatus uint8
+type PackageStatus int
 
 const (
 	PackageStatusActive   PackageStatus = 1

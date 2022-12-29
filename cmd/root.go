@@ -1,10 +1,14 @@
 package cmd
 
 import (
+	"fmt"
 	"log"
+	"net/http"
 	"os"
 
+	"github.com/gorilla/mux"
 	"github.com/littlehawk93/columba/config"
+	"github.com/littlehawk93/columba/handler"
 	"github.com/littlehawk93/columba/tracking"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -63,5 +67,15 @@ func run(cmd *cobra.Command, args []string) {
 
 	if err = tracking.Migrate(db); err != nil {
 		log.Fatalf("Unable to set up database: %s\n", err.Error())
+	}
+
+	router := mux.NewRouter()
+	router = router.StrictSlash(true)
+
+	handler.SetConfiguration(configuration)
+	handler.AddHandlers(router)
+
+	if err := http.ListenAndServe(fmt.Sprintf("%s:%d", configuration.Web.BindAddress, configuration.Web.Port), router); err != nil {
+		log.Fatal(err)
 	}
 }

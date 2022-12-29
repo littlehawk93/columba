@@ -15,7 +15,7 @@ import (
 const (
 	urlFormat                     string = "https://tools.usps.com/go/TrackConfirmAction?tLabels=%s"
 	id                            string = "USPS"
-	trackingEventItemSelector     string = "div.tb-step"
+	trackingEventItemSelector     string = "div.current-tracking-status-wrapper div.tb-step"
 	trackingEventDateSelector     string = "p.tb-date"
 	trackingEventStatusSelector   string = "p.tb-status-detail"
 	trackingEventLocationSelector string = "p.tb-location"
@@ -93,6 +93,8 @@ func cleanAndParseDate(dateStr string) (time.Time, error) {
 
 func cleanAndParseLocation(locationStr string) (*tracking.Location, error) {
 
+	locationStr = strings.TrimSpace(locationStr)
+
 	location := &tracking.Location{}
 
 	words := strings.Fields(locationStr)
@@ -107,11 +109,11 @@ func cleanAndParseLocation(locationStr string) (*tracking.Location, error) {
 	for i, word := range words {
 		if tracking.IsStateAbbreviation(word) && stateIndex == -1 {
 			stateIndex = i
-		} else if regexp.MustCompile(`^[0-9]{5}(\-[0-9]{4})?$`).MatchString(word) && zipIndex == -1 {
+		} else if tracking.IsZipCode(word) && zipIndex == -1 {
 			zipIndex = i
 		}
 
-		if stateIndex != -1 && zipIndex == -1 {
+		if stateIndex != -1 && zipIndex != -1 {
 			break
 		}
 	}
@@ -137,5 +139,5 @@ func cleanAndParseLocation(locationStr string) (*tracking.Location, error) {
 
 func cleanLocationWord(word string) string {
 
-	return regexp.MustCompile(`(^[^A-Za-z]+)|([^A-Za-z]+$)`).ReplaceAllString(word, "")
+	return regexp.MustCompile(`(^[^A-Za-z0-9]+)|([^A-Za-z0-9]+$)`).ReplaceAllString(word, "")
 }

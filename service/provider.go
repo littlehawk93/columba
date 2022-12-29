@@ -1,10 +1,7 @@
 package service
 
 import (
-	"io"
-	"log"
 	"net/http"
-	"os"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/littlehawk93/columba/tracking"
@@ -23,9 +20,6 @@ type Provider interface {
 // ParseTrackingEvents helper function for parsing HTML from a given URL and parsing a set of events from the returned response
 func ParseTrackingEvents(url, selector string, parser TrackingEventParser) ([]tracking.Event, error) {
 
-	log.Println(url)
-	log.Println(selector)
-
 	results := make([]tracking.Event, 0)
 
 	res, err := http.Get(url)
@@ -36,40 +30,26 @@ func ParseTrackingEvents(url, selector string, parser TrackingEventParser) ([]tr
 
 	defer res.Body.Close()
 
-	f, err := os.Create("tmp.html")
+	document, err := goquery.NewDocumentFromReader(res.Body)
 
 	if err != nil {
 		return results, err
 	}
 
-	defer f.Close()
-
-	io.Copy(f, res.Body)
-
-	return results, nil
-
-	/*
-		document, err := goquery.NewDocumentFromReader(f)
+	document.Find(selector).Each(func(i int, s *goquery.Selection) {
 
 		if err != nil {
-			return results, err
+			return
 		}
 
-		document.Find("div").Each(func(i int, s *goquery.Selection) {
+		evt, err2 := parser(s)
 
-			if err != nil {
-				return
-			}
+		if err2 != nil {
+			err = err2
+		} else if evt.EventText != "" || evt.Location != nil || evt.Timestamp != nil {
+			results = append(results, evt)
+		}
+	})
 
-			evt, err2 := parser(s)
-
-			if err2 != nil {
-				log.Fatal(err2)
-			} else if evt.EventText != "" || evt.Location != nil || evt.Timestamp != nil {
-				results = append(results, evt)
-			}
-		})
-
-		return results, err
-	*/
+	return results, err
 }

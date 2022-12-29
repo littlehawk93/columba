@@ -1,6 +1,13 @@
 package tracking
 
-import "strings"
+import (
+	"regexp"
+	"strings"
+)
+
+const (
+	zipCodeRegex string = `^[0-9]{5}(\-[0-9]{4})?$`
+)
 
 var statesList []string = []string{
 	"AL",
@@ -77,4 +84,9 @@ func IsStateAbbreviation(state string) bool {
 		}
 	}
 	return false
+}
+
+// IsZipCode returns true if the provided string is a valid zip code, false otherwise
+func IsZipCode(zip string) bool {
+	return regexp.MustCompile(zipCodeRegex).MatchString(zip)
 }
