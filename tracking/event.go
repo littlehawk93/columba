@@ -165,7 +165,7 @@ func GetPackageEvents(db *sql.Tx, p *Package) ([]Event, error) {
 
 	results := make([]Event, 0)
 
-	stmt, err := db.Prepare("SELECT id, package_id, event_text, details, location, event_timestamp, is_current FROM events WHERE package_id = ? ORDER BY id")
+	stmt, err := db.Prepare("SELECT id, package_id, event_text, details, location, event_timestamp, is_current FROM events WHERE package_id = ? ORDER BY event_timestamp DESC")
 
 	if err != nil {
 		return results, err

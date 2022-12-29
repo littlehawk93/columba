@@ -1,4 +1,5 @@
 import React from "react"
+import { createPackage } from "../../API/PackageAPI"
 import Box from "@mui/material/Box"
 import Grid from "@mui/material/Grid"
 import TextField from "@mui/material/TextField"
@@ -26,7 +27,8 @@ class NewPackageForm extends React.Component
             service: {
                 error: "",
                 value: ""
-            }
+            },
+            processing: false
         }
     }
 
@@ -89,7 +91,39 @@ class NewPackageForm extends React.Component
             service: serviceValue
         };
 
-        console.log(pkg);
+        this.setState({processing: true}, () => {
+            createPackage(pkg, this.onSuccess, this.onError);
+        })
+    }
+
+    onSuccess = (pkg) => {
+        this.setState({
+            label: {
+                error: "",
+                value: ""
+            },
+            trackingNum: {
+                error: "",
+                value: ""
+            },
+            service: {
+                error: "",
+                value: ""
+            },
+            processing: false
+        }, () => {
+            if (this.props.onPackageCreated) {
+                this.props.onPackageCreated(pkg);
+            }
+        });
+    }
+
+    onError = (error) => {
+        this.setState({processing: false}, () => {
+            if(this.props.onError) {
+                this.props.onError(error);
+            }
+        });
     }
 
     render() {
@@ -110,7 +144,7 @@ class NewPackageForm extends React.Component
                             label="Label (Optional)"
                             variant="filled"
                             onChange={this.onChange}
-                            
+                            disabled={this.state.processing}
                         />
                     </Grid>
                     <Grid item xs={12} sm={7} md={4} lg={4}>
@@ -126,6 +160,7 @@ class NewPackageForm extends React.Component
                             label="Tracking Number"
                             variant="filled"
                             onChange={this.onChange}
+                            disabled={this.state.processing}
                         />
                     </Grid>
                     <Grid item xs={12} sm={6} md={2} lg={2}>
@@ -140,6 +175,7 @@ class NewPackageForm extends React.Component
                             label="Service"
                             variant="filled"
                             onChange={this.onChange}
+                            disabled={this.state.processing}
                         />
                     </Grid>
                     <Grid item xs={12} sm={3} md={1} lg={1} alignItems="flex-end">
@@ -149,6 +185,7 @@ class NewPackageForm extends React.Component
                                 size="medium"
                                 color="primary" 
                                 aria-label="Add Package"
+                                disabled={this.state.processing}
                             >
                                 <AddIcon />
                             </Fab>
@@ -161,6 +198,7 @@ class NewPackageForm extends React.Component
                                 color="primary"
                                 aria-label="Add Package"
                                 startIcon={<AddIcon />}
+                                disabled={this.state.processing}
                             >
                                 Add Package
                             </Button>

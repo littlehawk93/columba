@@ -21,6 +21,7 @@ type Package struct {
 	Status                PackageStatus
 	TrackingNumber        string
 	ServiceID             string
+	Provider              Provider
 	Label                 string
 	Origin                *Location
 	Destination           *Location
@@ -118,23 +119,119 @@ func (me *Package) Update(db *sql.Tx) error {
 // MarshalJSON custom json marshalling interface method
 func (me Package) MarshalJSON() ([]byte, error) {
 
-	j, err := json.Marshal(struct {
-		ID             int       `json:"id"`
-		CreatedOn      time.Time `json:"created_on"`
-		LastUpdatedOn  time.Time `json:"last_updated_on"`
-		Status         string    `json:"status"`
-		TrackingNumber string    `json:"tracking_number"`
-		Service        string    `json:"service"`
-		Label          string    `json:"label"`
-	}{})
+	var tmp struct {
+		ID                    int        `json:"id"`
+		CreatedOn             time.Time  `json:"created_on"`
+		LastUpdatedOn         time.Time  `json:"last_updated_on"`
+		Status                string     `json:"status"`
+		TrackingNumber        string     `json:"tracking_number"`
+		TrackingURL           string     `json:"tracking_url"`
+		Service               string     `json:"service"`
+		Label                 string     `json:"label"`
+		Origin                *Location  `json:"origin"`
+		Destination           *Location  `json:"destination"`
+		EstimatedDeliveryDate *time.Time `json:"estimated_delivery_date"`
+		Events                []Event    `json:"events"`
+	}
+
+	tmp.ID = me.id
+	tmp.CreatedOn = me.createdOn
+	tmp.LastUpdatedOn = me.lastUpdatedOn
+	tmp.Status = me.Status.String()
+	tmp.TrackingNumber = me.TrackingNumber
+	tmp.Service = me.ServiceID
+	tmp.Label = me.Label
+	tmp.Origin = me.Origin
+	tmp.Destination = me.Destination
+	tmp.EstimatedDeliveryDate = me.EstimatedDeliveryDate
+	tmp.Events = me.Events
+
+	if me.Provider != nil {
+		tmp.TrackingURL = me.Provider.GetTrackingURL(me.TrackingNumber)
+	}
+
+	return json.Marshal(&tmp)
+}
+
+// UnmarshalJSON custom JSON unmarshalling interface method
+func (me *Package) UnmarshalJSON(data []byte) error {
+
+	var tmp struct {
+		ID             int    `json:"id"`
+		Status         string `json:"string"`
+		TrackingNumber string `json:"tracking_number"`
+		Service        string `json:"service"`
+		Label          string `json:"label"`
+	}
+
+	if err := json.Unmarshal(data, &tmp); err != nil {
+		return err
+	}
+
+	me.id = tmp.ID
+	me.Status = ParsePackageStatus(tmp.Status)
+	me.TrackingNumber = tmp.TrackingNumber
+	me.ServiceID = tmp.Service
+	me.Label = tmp.Label
+
+	return nil
+}
+
+// GetPackage retrieve a single package from the database using it's ID. Returns nil if no package was found with the id
+func GetPackage(id int, db *sql.Tx) (*Package, error) {
+
+	stmt, err := db.Prepare("SELECT id, status, tracking_number, service, label, created_on, last_updated_on, origin, destination, estimated_delivery_date FROM packages WHERE id = ?")
 
 	if err != nil {
 		return nil, err
 	}
-	return j, nil
+
+	rows, err := stmt.Query(id)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var pkg Package
+
+	if rows.Next() {
+
+		if pkg, err = newPackageFromSQL(rows); err != nil {
+			return nil, err
+		}
+	}
+	return &pkg, nil
 }
 
-// GetAllPackages
+// GetAllPackagesWithEvents retrieve all packages that have a particular status along with the events for each returned package
+func GetAllPackagesWithEvents(status PackageStatus, db *sql.Tx) ([]Package, error) {
+
+	packages, err := GetAllPackages(status, db)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range packages {
+
+		events, err := GetPackageEvents(db, &packages[i])
+
+		if err != nil {
+			return nil, err
+		}
+
+		packages[i].Events = events
+	}
+
+	return packages, nil
+}
+
+// GetAllPackages retrieve all packages that have a particular status
 func GetAllPackages(status PackageStatus, db *sql.Tx) ([]Package, error) {
 
 	stmt, err := db.Prepare("SELECT id, status, tracking_number, service, label, created_on, last_updated_on, origin, destination, estimated_delivery_date FROM packages WHERE status = ?")
@@ -145,10 +242,6 @@ func GetAllPackages(status PackageStatus, db *sql.Tx) ([]Package, error) {
 
 	rows, err := stmt.Query(int(status))
 
-	if err != nil {
-		return nil, err
-	}
-
 	results := make([]Package, 0)
 
 	if err != nil {
@@ -157,6 +250,8 @@ func GetAllPackages(status PackageStatus, db *sql.Tx) ([]Package, error) {
 		}
 		return nil, err
 	}
+
+	defer rows.Close()
 
 	for rows.Next() {
 		var pkg Package

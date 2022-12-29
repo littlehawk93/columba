@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/littlehawk93/columba/service"
 	"github.com/littlehawk93/columba/tracking"
 )
 
@@ -28,19 +27,19 @@ type Provider struct {
 }
 
 // GetID returns the USPS provider ID
-func (me Provider) GetID() string {
+func (me *Provider) GetID() string {
 	return id
 }
 
 // GetTrackingURL returns the USPS tracking URL for a given tracking number
-func (me Provider) GetTrackingURL(trackingNumber string) string {
+func (me *Provider) GetTrackingURL(trackingNumber string) string {
 	return fmt.Sprintf(urlFormat, url.QueryEscape(trackingNumber))
 }
 
 // GetTrackingEvents get all tracking events for a given tracking number
-func (me Provider) GetTrackingEvents(trackingNumber string) ([]tracking.Event, error) {
+func (me *Provider) GetTrackingEvents(trackingNumber string) ([]tracking.Event, error) {
 
-	return service.ParseTrackingEvents(me.GetTrackingURL(trackingNumber), trackingEventItemSelector, trackingEventParser)
+	return tracking.ParseTrackingEvents(me.GetTrackingURL(trackingNumber), trackingEventItemSelector, trackingEventParser)
 }
 
 func trackingEventParser(s *goquery.Selection) (tracking.Event, error) {

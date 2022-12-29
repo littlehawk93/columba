@@ -1,26 +1,25 @@
-package service
+package tracking
 
 import (
 	"net/http"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/littlehawk93/columba/tracking"
 )
 
 // TrackingEventParser definition for a function that returns a tracking event from an HTML selection
-type TrackingEventParser func(doc *goquery.Selection) (tracking.Event, error)
+type TrackingEventParser func(doc *goquery.Selection) (Event, error)
 
 // Provider defines a shipping provider
 type Provider interface {
 	GetID() string
 	GetTrackingURL(trackingNumber string) string
-	GetTrackingEvents(trackingNumber string) ([]tracking.Event, error)
+	GetTrackingEvents(trackingNumber string) ([]Event, error)
 }
 
 // ParseTrackingEvents helper function for parsing HTML from a given URL and parsing a set of events from the returned response
-func ParseTrackingEvents(url, selector string, parser TrackingEventParser) ([]tracking.Event, error) {
+func ParseTrackingEvents(url, selector string, parser TrackingEventParser) ([]Event, error) {
 
-	results := make([]tracking.Event, 0)
+	results := make([]Event, 0)
 
 	res, err := http.Get(url)
 
