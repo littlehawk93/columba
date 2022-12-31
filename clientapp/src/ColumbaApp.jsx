@@ -86,8 +86,6 @@ class ColumbaApp extends React.Component
 
         const { packages, theme } = this.state;
 
-        console.log(theme);
-
         return (
             <ThemeProvider theme={theme}>
                 <CssBaseline />

@@ -4,10 +4,15 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/littlehawk93/columba/providers"
 	"github.com/littlehawk93/columba/tracking"
+)
+
+const (
+	eventTrackingEventsLastUpdatedHeader string = "X-Tracking-Events-Last-Refreshed"
 )
 
 func getPackageEvents(w http.ResponseWriter, r *http.Request) {
@@ -57,6 +62,12 @@ func getPackageEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if time.Since(pkg.GetLastUpdatedOn()).Seconds() <= float64(configuration.MinimumRefreshTimeSeconds) {
+		w.Header().Set(eventTrackingEventsLastUpdatedHeader, pkg.GetLastUpdatedOn().Format("2006-01-02 15:04:06"))
+		writeJSON(w, dbEvents, http.StatusOK)
+		return
+	}
+
 	provider := providers.GetServiceProvider(pkg.ServiceID)
 
 	if provider == nil {
@@ -88,5 +99,6 @@ func getPackageEvents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	totalEvents := append(newEvents, dbEvents...)
+	w.Header().Set(eventTrackingEventsLastUpdatedHeader, pkg.GetLastUpdatedOn().Format("2006-01-02 15:04:06"))
 	writeJSON(w, totalEvents, http.StatusOK)
 }

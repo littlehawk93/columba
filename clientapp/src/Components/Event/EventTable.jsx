@@ -1,10 +1,25 @@
 import React from "react"
+import { darken, lighten } from '@mui/material/styles';
 import Table from "@mui/material/Table"
 import TableHead from "@mui/material/TableHead"
 import TableBody from "@mui/material/TableBody"
 import TableRow from "@mui/material/TableRow"
 import TableCell from "@mui/material/TableCell"
 import Moment from "react-moment";
+
+const getBackgroundColor = (color, mode) => mode == "dark" ? darken(color, 0.6) : lighten(color, 0.6);
+
+const successStyle = {
+    bgcolor: (theme) => getBackgroundColor(theme.palette.success.main, theme.palette.mode)
+};
+
+const warningStyle = {
+    bgcolor: (theme) => getBackgroundColor(theme.palette.warning.main, theme.palette.mode)
+};
+
+const errorStyle = {
+    bgcolor: (theme) => getBackgroundColor(theme.palette.error.main, theme.palette.mode)
+};
 
 class EventRow extends React.Component {
 
@@ -18,12 +33,23 @@ class EventRow extends React.Component {
         return "";
     }
 
+    isSuccess = () => {
+
+        const { event } = this.props;
+
+        if (event) {
+            const eventText = event.event_text.toLowerCase().replace(/[^a-z]+/, " ");
+            return eventText.includes("delivered"); 
+        }
+        return false;
+    }
+
     render() {
 
         const { event } = this.props;
 
         return (
-            <TableRow>
+            <TableRow sx={this.isSuccess() ? successStyle : {}}>
                 <TableCell>
                     {this.formatLocationString(event.location)}
                 </TableCell>
