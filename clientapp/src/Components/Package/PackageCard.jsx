@@ -12,6 +12,8 @@ import RefreshIcon from "@mui/icons-material/Refresh"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import EventTable from "../Event/EventTable"
 
+const autoRefreshIntervalMillis = 300000; // 5 minutes in milliseconds
+
 const refreshAnimation = {
     animation: "spin 2s linear infinite", 
     "@keyframes spin": {
@@ -32,14 +34,28 @@ class PackageCard extends React.Component
         this.state = {
             refreshing: false,
             expanded: false,
-            item: props.item
+            item: props.item,
+            refreshJob: setTimeout(this.onRefresh, autoRefreshIntervalMillis)
         };
+    }
+
+    componentWillUnmount() {
+
+        if (this.state.refreshJob) {
+            clearTimeout(this.state.refreshJob);
+            this.setState({refreshJob: null});
+        }
     }
 
     onRefresh = (e) => {
 
+        if (e) {
+            clearTimeout(this.state.refreshJob);
+        }
+
         this.setState({
             refreshing: true,
+            refreshJob: setTimeout(this.onRefresh, autoRefreshIntervalMillis)
         }, () => {
             getPackageEvents(this.state.item.id, this.onEventsReceived, this.onError);
         });
