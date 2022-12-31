@@ -3,6 +3,7 @@ package tracking
 import (
 	"database/sql"
 	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"hash/crc32"
@@ -56,18 +57,16 @@ func (me *Event) SetID() {
 		idBytes[i+4] = b
 	}
 
-	crc := crc32.NewIEEE()
-
-	tmpBytes = crc.Sum([]byte(fmt.Sprintf("%s|%s", me.EventText, me.Details)))
+	checksum := crc32.ChecksumIEEE([]byte(strings.TrimSpace(strings.ToLower(fmt.Sprintf("%s|%s", me.EventText, me.Details)))))
+	binary.BigEndian.PutUint32(tmpBytes, checksum)
 
 	for i, b := range tmpBytes {
 		idBytes[i+8] = b
 	}
 
 	if me.Location != nil {
-		crc = crc32.NewIEEE()
-
-		tmpBytes = crc.Sum([]byte(me.Location.String()))
+		checksum = crc32.ChecksumIEEE([]byte(strings.TrimSpace(strings.ToLower(me.Location.String()))))
+		binary.BigEndian.PutUint32(tmpBytes, checksum)
 
 		for i, b := range tmpBytes {
 			idBytes[i+12] = b
@@ -125,12 +124,33 @@ func (me Event) getTimestampString() string {
 	return me.Timestamp.Format(eventTimestampDateFormat)
 }
 
+// MarshalJSON custom json marshalling interface method
+func (me Event) MarshalJSON() ([]byte, error) {
+
+	var tmp struct {
+		ID        uuid.UUID  `json:"id"`
+		EventText string     `json:"event_text"`
+		Location  *Location  `json:"location"`
+		Timestamp *time.Time `json:"timestamp"`
+	}
+
+	tmp.ID = me.id
+	tmp.EventText = me.EventText
+	tmp.Location = me.Location
+	tmp.Timestamp = me.Timestamp
+
+	return json.Marshal(&tmp)
+}
+
 // GetNewEvents compares a new list of events with an old list and returns only events not found in the old list
-func GetNewEvents(newList, oldList []Event) []Event {
+func GetNewEvents(newList, oldList []Event, pkg *Package) []Event {
 
 	results := make([]Event, 0)
 
 	for _, newEvent := range newList {
+
+		newEvent.PackageID = pkg.id
+		newEvent.SetID()
 
 		exists := false
 
@@ -149,9 +169,15 @@ func GetNewEvents(newList, oldList []Event) []Event {
 }
 
 // InsertEvents inserts multiple events and returns an error on the first error encountered
-func InsertEvents(events []Event, db *sql.Tx) error {
+func InsertEvents(events []Event, pkg *Package, db *sql.Tx) error {
 
 	for _, e := range events {
+
+		e.PackageID = pkg.id
+
+		if e.id == uuid.Nil {
+			e.SetID()
+		}
 
 		if err := e.Insert(db); err != nil {
 			return err

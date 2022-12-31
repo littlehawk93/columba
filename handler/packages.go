@@ -33,7 +33,7 @@ func getAllPackages(w http.ResponseWriter, r *http.Request) {
 		db.Close()
 	}()
 
-	packages, err := tracking.GetAllPackages(status, tx)
+	packages, err := tracking.GetAllPackagesWithEvents(status, tx)
 
 	for i := range packages {
 		packages[i].Provider = providers.GetServiceProvider(packages[i].ServiceID)

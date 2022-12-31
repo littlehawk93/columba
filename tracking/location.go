@@ -6,10 +6,10 @@ import (
 )
 
 type Location struct {
-	Facility string
-	City     string
-	State    string
-	Zip      string
+	Facility string `json:"facility"`
+	City     string `json:"city"`
+	State    string `json:"state"`
+	Zip      string `json:"zip"`
 }
 
 // String serialize this location to a string

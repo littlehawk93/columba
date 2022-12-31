@@ -79,7 +79,13 @@ func trackingEventParser(s *goquery.Selection) (tracking.Event, error) {
 
 func cleanAndParseDate(dateStr string) (time.Time, error) {
 
-	dateStr = regexp.MustCompile(`\s\s+`).ReplaceAllString(strings.TrimSpace(dateStr), " ")
+	dateStr = regexp.MustCompile(`\s+`).ReplaceAllString(strings.TrimSpace(dateStr), " ")
+
+	if idx := strings.Index(dateStr, " am "); idx != -1 && len(dateStr) > idx+4 {
+		dateStr = dateStr[:idx+3]
+	} else if idx := strings.Index(dateStr, " pm "); idx != -1 && len(dateStr) > idx+4 {
+		dateStr = dateStr[:idx+3]
+	}
 
 	result, err := time.Parse(trackingEventDateFormat, dateStr)
 

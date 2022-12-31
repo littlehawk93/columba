@@ -71,10 +71,10 @@ func getPackageEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newEvents = tracking.GetNewEvents(newEvents, dbEvents)
+	newEvents = tracking.GetNewEvents(newEvents, dbEvents, pkg)
 
 	if len(newEvents) > 0 {
-		if err = tracking.InsertEvents(newEvents, tx); err != nil {
+		if err = tracking.InsertEvents(newEvents, pkg, tx); err != nil {
 			tx.Rollback()
 			writeError(w, err, http.StatusInternalServerError)
 			return

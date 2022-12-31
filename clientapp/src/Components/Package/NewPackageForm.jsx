@@ -181,6 +181,7 @@ class NewPackageForm extends React.Component
                     <Grid item xs={12} sm={3} md={1} lg={1} alignItems="flex-end">
                         <Hidden mdDown>
                             <Fab 
+                                title="Add New Package"
                                 onClick={this.onSubmit}
                                 size="medium"
                                 color="primary" 
@@ -192,6 +193,7 @@ class NewPackageForm extends React.Component
                         </Hidden>
                         <Hidden mdUp>
                             <Button
+                                title="Add New Package"
                                 onClick={this.onSubmit}
                                 size="large"
                                 variant="contained"
