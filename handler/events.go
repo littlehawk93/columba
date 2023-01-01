@@ -62,7 +62,7 @@ func getPackageEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if time.Since(pkg.GetLastUpdatedOn()).Seconds() <= float64(configuration.MinimumRefreshTimeSeconds) {
+	if time.Since(pkg.GetLastUpdatedOn()).Seconds() <= float64(configuration.MinimumRefreshTimeSeconds) && pkg.GetLastUpdatedOn().Sub(pkg.GetCreatedOn()).Seconds() > 1 {
 		w.Header().Set(eventTrackingEventsLastUpdatedHeader, pkg.GetLastUpdatedOn().Format("2006-01-02 15:04:06"))
 		writeJSON(w, dbEvents, http.StatusOK)
 		return
