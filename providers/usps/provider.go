@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/littlehawk93/columba/providers/utils"
 	"github.com/littlehawk93/columba/tracking"
 )
 
@@ -39,7 +40,7 @@ func (me *Provider) GetTrackingURL(trackingNumber string) string {
 // GetTrackingEvents get all tracking events for a given tracking number
 func (me *Provider) GetTrackingEvents(trackingNumber string) ([]tracking.Event, error) {
 
-	return tracking.ParseTrackingEvents(me.GetTrackingURL(trackingNumber), trackingEventItemSelector, trackingEventParser)
+	return utils.ParseTrackingEvents(me.GetTrackingURL(trackingNumber), trackingEventItemSelector, trackingEventParser)
 }
 
 func trackingEventParser(s *goquery.Selection) (tracking.Event, error) {
