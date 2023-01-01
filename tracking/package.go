@@ -83,6 +83,21 @@ func (me *Package) Insert(db *sql.Tx) error {
 	return row.Scan(&(me.id))
 }
 
+func (me *Package) UpdateStatus(status PackageStatus, db *sql.Tx) error {
+
+	me.lastUpdatedOn = time.Now()
+	me.Status = status
+
+	stmt, err := db.Prepare("UPDATE packages SET status = ?, last_updated_on = ? WHERE id = ?")
+
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.Exec(int(me.Status), me.lastUpdatedOn.Format(packageTimestampDateFormat), me.id)
+	return err
+}
+
 // Update updates information about this record in the database, returns any errors
 func (me *Package) Update(db *sql.Tx) error {
 

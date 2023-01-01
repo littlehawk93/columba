@@ -29,6 +29,7 @@ func AddHandlers(r *mux.Router) {
 
 	packages.HandleFunc("", getAllPackages).Methods("GET")
 	packages.HandleFunc("", createPackage).Methods("POST").Headers("Content-Type", "application/json")
+	packages.HandleFunc("/{id:[0-9]+}", deletePackage).Methods("DELETE")
 
 	events := api.PathPrefix("/event").Subrouter()
 

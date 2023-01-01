@@ -2,9 +2,12 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
+	"github.com/gorilla/mux"
 	"github.com/littlehawk93/columba/providers"
 	"github.com/littlehawk93/columba/tracking"
 )
@@ -92,4 +95,61 @@ func createPackage(w http.ResponseWriter, r *http.Request) {
 
 	pkg.Provider = providers.GetServiceProvider(pkg.ServiceID)
 	writeJSON(w, pkg, http.StatusCreated)
+}
+
+func deletePackage(w http.ResponseWriter, r *http.Request) {
+
+	packageIDStr, ok := mux.Vars(r)["id"]
+
+	if !ok {
+		writeError(w, errors.New("must provide package ID"), http.StatusBadRequest)
+		return
+	}
+
+	packageID, err := strconv.ParseInt(packageIDStr, 10, 32)
+
+	if err != nil {
+		writeError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	tx, db, err := openTx()
+
+	if err != nil {
+		writeError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	defer func() {
+		db.Close()
+	}()
+
+	pkg, err := tracking.GetPackage(int(packageID), tx)
+
+	if err != nil {
+		tx.Rollback()
+		writeError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	if pkg == nil {
+		tx.Rollback()
+		writeError(w, errors.New("package not found"), http.StatusNotFound)
+		return
+	}
+
+	if err = pkg.UpdateStatus(tracking.PackageStatusArchived, tx); err != nil {
+		tx.Rollback()
+		writeError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	if err = tx.Commit(); err != nil {
+		tx.Rollback()
+		writeError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	w.Write([]byte{})
 }

@@ -21,3 +21,12 @@ export function createPackage(pkg, onSuccess, onError) {
         handleAPIResponse(response, onSuccess, onError);
     });
 }
+
+export function deletePackage(packageId, onSuccess, onError) {
+
+    packageId = encodeURIComponent(packageId);
+
+    fetch("/api/package/" + packageId, {method: "DELETE"}).then(response => {
+        handleAPIResponse(response, onSuccess, onError);
+    });
+}

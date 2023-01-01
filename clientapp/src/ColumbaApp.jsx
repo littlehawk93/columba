@@ -10,6 +10,8 @@ import NewPackageForm from "./Components/Package/NewPackageForm"
 import PackageList from "./Components/Package/PackageList"
 import Select from "@mui/material/Select"
 import MenuItem from "@mui/material/MenuItem"
+import Snackbar from "@mui/material/Snackbar"
+import Alert from "@mui/material/Alert"
 import { ErrorContext } from "./Context/Error"
 
 class ColumbaApp extends React.Component
@@ -47,6 +49,10 @@ class ColumbaApp extends React.Component
         this.setState({error: error});
     }
 
+    clearError = () => {
+        this.setState({error: null});
+    }
+
     onPackageCreated = (pkg) => {
         this.updatePackageList();
     }
@@ -82,14 +88,31 @@ class ColumbaApp extends React.Component
         });
     }
 
+    onPackageRemoved = (pkg) => {
+
+        var packages = this.state.packages;
+
+        for(var i=0;i<packages.length;i++) {
+
+            if (packages[i].id == pkg.id) {
+                packages.splice(i, 1);
+                break;
+            }
+        }
+
+        this.setState({
+            packages: packages
+        });
+    }
+
     render() {
 
-        const { packages, theme } = this.state;
+        const { packages, theme, error, themeName } = this.state;
 
         return (
             <ThemeProvider theme={theme}>
                 <CssBaseline />
-                <ErrorContext.Provider value={{error: this.state.error, level: "error", onError: this.onError}}>
+                <ErrorContext.Provider value={{error: error, level: "error", onError: this.onError}}>
                     <AppBar position="fixed" color="primary">
                         <Toolbar>
                             <Typography variant="h5" component="div" sx={{flexGrow: 1, textAlign: "center" }}>Columba Package Tracking</Typography>
@@ -99,7 +122,7 @@ class ColumbaApp extends React.Component
                                 name="select-theme"
                                 id="select-theme-dropdown"
                                 variant="standard"
-                                value={this.state.themeName}
+                                value={themeName}
                                 >
                                 <MenuItem value="light">Light Theme</MenuItem>
                                 <MenuItem value="dark">Dark Theme</MenuItem>
@@ -114,12 +137,22 @@ class ColumbaApp extends React.Component
                                     <NewPackageForm onPackageCreated={this.onPackageCreated} />
                                 </Grid>
                                 <Grid item xs={12}>
-                                    <PackageList packages={packages} />
+                                    <PackageList packages={packages} onPackageRemoved={this.onPackageRemoved} />
                                 </Grid>
                             </Grid>
                         </Grid>
                         <Grid item md={2} lg={3}></Grid>
                     </Grid>
+                    {error && (
+                        <Snackbar
+                            anchorOrigin={{vertical: "bottom", horizontal: "center"}}
+                            open={error != null && error != ""} 
+                            autoHideDuration={6000}
+                            onClose={this.clearError}
+                        >
+                            <Alert onClose={this.clearError} severity="error">{error}</Alert>
+                        </Snackbar>
+                    )}
                 </ErrorContext.Provider>
             </ThemeProvider>
         );
