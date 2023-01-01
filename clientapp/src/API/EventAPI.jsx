@@ -8,3 +8,11 @@ export function getPackageEvents(packageId, onSuccess, onError) {
         handleAPIResponse(response, onSuccess, onError);
     });
 }
+
+export function eventIsDelivered(event) {
+    if (event) {
+        const eventText = event.event_text.toLowerCase().replace(/[^a-z]+/, " ");
+        return eventText.includes("delivered"); 
+    }
+    return false;
+}

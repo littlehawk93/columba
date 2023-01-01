@@ -1,7 +1,9 @@
 import React from "react"
-import { getPackageEvents } from "../../API/EventAPI"
-import { deletePackage } from "../../API/PackageAPI"
+import { formatLocationString } from "../../API/LocationAPI"
+import { eventIsDelivered, getPackageEvents } from "../../API/EventAPI"
+import { deletePackage, getLatestEvent } from "../../API/PackageAPI"
 import { ErrorContext } from "../../Context/Error"
+import Grid from "@mui/material/Grid"
 import Card from '@mui/material/Card'
 import CardHeader from "@mui/material/CardHeader"
 import CardContent from "@mui/material/CardContent"
@@ -15,6 +17,8 @@ import DeleteIcon from "@mui/icons-material/Delete"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import EventTable from "../Event/EventTable"
 import ConfirmDialog from "../Dialogs/ConfirmDialog"
+import Popover from "@mui/material/Popover"
+import Moment from "react-moment"
 
 const autoRefreshIntervalMillis = 300000; // 5 minutes in milliseconds
 
@@ -36,6 +40,8 @@ class PackageCard extends React.Component
         super(props);
 
         this.state = {
+            showClipboardPopover: false,
+            clipboardPopoverAnchorEl: null,
             showRemoveConfirmDialog: false,
             refreshing: false,
             expanded: false,
@@ -130,19 +136,46 @@ class PackageCard extends React.Component
         }
     }
 
-    render() {
+    onCopyTrackingNumber = (e) => {
 
         const { item } = this.state;
 
+        var input = document.getElementById(item.id + "-tracking-number-clipboard");
+
+        if (input) {
+            const { value } = input;
+            navigator.clipboard.writeText(value).then(() => {
+                setTimeout(() => { this.onClipboardPopoverClose(); }, 1200);
+                this.setState({showClipboardPopover: true, clipboardPopoverAnchorEl: e.target});
+            });
+        }
+    }
+
+    onClipboardPopoverClose = () => {
+        this.setState({showClipboardPopover: false, clipboardPopoverAnchorEl: null});
+    }
+
+    render() {
+
+        const { item } = this.state;
+        const latestEvent = getLatestEvent(item);
+
+        var title = item.label ? item.label : item.tracking_number;
+
+        if (eventIsDelivered(latestEvent)) {
+            title = title + " - Delivered";
+        }
+
+        const subtitle = item.label ? item.tracking_number + " (" + item.service + ")" : "";
+
         return (
             <Card variant="outlined">
+                <input id={item.id + "-tracking-number-clipboard"} type="hidden" value={item.tracking_number} />
                 <CardHeader 
                     title={
-                        <Typography variant="h5">{item.label ? item.label : item.tracking_number}</Typography>
+                        <Typography variant="h5">{title}</Typography>
                     }
-                    subheader={
-                        (item.label ? item.tracking_number : "") + " (" + item.service + ")"
-                    }
+                    subheader={subtitle}
                     action={
                         <div>
                             <IconButton 
@@ -162,12 +195,30 @@ class PackageCard extends React.Component
                         </div>
                     }
                 />
-                <CardActions>
-                    {item.tracking_url && (<Button component="a" size="small" href={item.tracking_url} target="_blank">Track with {item.service}</Button>)}
-                    <IconButton
-                        sx={{marginLeft: "auto"}}
-                        onClick={this.onToggleExpand}
-                    >
+                {latestEvent && (
+                    <CardContent>
+                        <Grid container>
+                            <Grid item xs={12}>
+                                <Typography variant="h6">Latest Event</Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={12} md={4}>
+                                {formatLocationString(latestEvent.location)}
+                            </Grid>
+                            <Grid item xs={12} sm={12} md={4}>
+                                {latestEvent.event_text}
+                            </Grid>
+                            <Grid item xs={12} sm={12} md={4}>
+                                <Moment format="MMM D YYYY - h:mm A">{latestEvent.timestamp}</Moment>
+                            </Grid>
+                        </Grid>
+                    </CardContent>
+                )}
+                <CardActions disableSpacing>
+                    <Button size="small" sx={{ marginRight: 2 }} onClick={this.onCopyTrackingNumber} disabled={this.state.showClipboardPopover}>Copy Tracking #</Button>
+                    {item.tracking_url && (
+                        <Button component="a" size="small" href={item.tracking_url} target="_blank">Track with {item.service}</Button>
+                    )}
+                    <IconButton onClick={this.onToggleExpand} sx={{ marginLeft: "auto" }}>
                         <ExpandMoreIcon sx={{transform: this.state.expanded ? "rotate(180deg)" : "rotate(0deg)"}} />
                     </IconButton>
                 </CardActions>
@@ -182,6 +233,14 @@ class PackageCard extends React.Component
                     message="Remove package from listing? This action cannot be un-done." 
                     onCancel={this.onRemoveCancel} 
                     onConfirm={this.onRemoveConfirm} />
+                <Popover
+                    open={this.state.showClipboardPopover}
+                    anchorEl={this.state.clipboardPopoverAnchorEl}
+                    anchorOrigin={{vertical: "center", horizontal: "right"}}
+                    onClose={this.onClipboardPopoverClose}
+                    >
+                        <Typography sx={{ p: 2 }}>Copied to Clipboard</Typography>
+                </Popover>
             </Card>
         );
     }

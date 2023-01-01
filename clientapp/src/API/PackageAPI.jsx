@@ -30,3 +30,11 @@ export function deletePackage(packageId, onSuccess, onError) {
         handleAPIResponse(response, onSuccess, onError);
     });
 }
+
+export function getLatestEvent(pkg) {
+
+    if (pkg != null && pkg.events != null && Array.isArray(pkg.events) && pkg.events.length > 0) {
+        return pkg.events[0];
+    }
+    return null;
+}

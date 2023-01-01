@@ -54,7 +54,11 @@ class ColumbaApp extends React.Component
     }
 
     onPackageCreated = (pkg) => {
-        this.updatePackageList();
+        var packages = this.state.packages;
+
+        packages.push(pkg);
+
+        this.setState({packages: packages});
     }
 
     getTheme = () => {
