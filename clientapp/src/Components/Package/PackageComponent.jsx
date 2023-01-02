@@ -16,8 +16,14 @@ class PackageComponentBase extends React.Component
             refreshing: false,
             showClipboardPopover: false,
             item: props.item,
-            refreshJob: setTimeout(this.onRefresh, autoRefreshIntervalMillis)
+            refreshJob: null,
         };
+    }
+
+    componentDidMount() {
+        this.setState({
+            refreshJob: setTimeout(this.onRefresh, autoRefreshIntervalMillis)
+        });
     }
 
     componentWillUnmount() {
@@ -30,7 +36,7 @@ class PackageComponentBase extends React.Component
 
     onRefresh = (e) => {
 
-        if (e) {
+        if (this.state.refreshJob) {
             clearTimeout(this.state.refreshJob);
         }
 
