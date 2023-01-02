@@ -27,16 +27,16 @@ const (
 	trackingEventLocationAndDateSelector string = "div.shipment-status-progress-step-content span.shipment-status-progress-step-label-content"
 )
 
-// Provider extends the service.Provider interface for USPS
+// Provider extends the service.Provider interface for FedEx
 type Provider struct {
 }
 
-// GetID returns the USPS provider ID
+// GetID returns the FedEx provider ID
 func (me *Provider) GetID() string {
 	return id
 }
 
-// GetTrackingURL returns the USPS tracking URL for a given tracking number
+// GetTrackingURL returns the FedEx tracking URL for a given tracking number
 func (me *Provider) GetTrackingURL(trackingNumber string) string {
 	return fmt.Sprintf(urlFormat, url.QueryEscape(trackingNumber))
 }

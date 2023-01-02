@@ -106,7 +106,7 @@ func cleanAndParseLocation(locationStr string) (*tracking.Location, error) {
 	words := strings.Fields(locationStr)
 
 	for i := 0; i < len(words); i++ {
-		words[i] = cleanLocationWord(words[i])
+		words[i] = utils.CleanLocationWord(words[i])
 	}
 
 	stateIndex := -1
@@ -141,9 +141,4 @@ func cleanAndParseLocation(locationStr string) (*tracking.Location, error) {
 	}
 
 	return location, nil
-}
-
-func cleanLocationWord(word string) string {
-
-	return regexp.MustCompile(`(^[^A-Za-z0-9]+)|([^A-Za-z0-9]+$)`).ReplaceAllString(word, "")
 }

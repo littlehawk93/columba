@@ -2,10 +2,17 @@ package utils
 
 import (
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/littlehawk93/columba/tracking"
+)
+
+const (
+	// userAgentWin10Edge Win10 MS Edge User Agent
+	userAgentWin10Edge       string = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246"
+	cleanLocationRegexCutset string = `(^[^A-Za-z0-9]+)|([^A-Za-z0-9]+$)`
 )
 
 // TrackingEventParser definition for a function that returns a tracking event from an HTML selection
@@ -58,4 +65,14 @@ func ElemExistsWithData(s *goquery.Selection, selector string) (*goquery.Selecti
 	}
 
 	return elem, len(strings.TrimSpace(elem.Text())) > 0
+}
+
+// GetUserAgent retreive a user agent to make Columba requests appear as desktop client apps to tracking websites
+func GetUserAgent() string {
+	return userAgentWin10Edge
+}
+
+// CleanLocationWord cleans a particular city or state name for a location to standardize naming format across all shipping providers
+func CleanLocationWord(word string) string {
+	return strings.ToUpper(regexp.MustCompile(cleanLocationRegexCutset).ReplaceAllString(word, ""))
 }
