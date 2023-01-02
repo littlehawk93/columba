@@ -314,7 +314,7 @@ class ColumbaApp extends React.Component
                                         </Hidden>
                                         <Hidden smUp>
                                             <Grid item xs={12}>
-                                                <PackageList packages={packages} onPackageRemoved={this.onPackageRemoved} />
+                                                <PackageGrid packages={packages} onPackageRemoved={this.onPackageRemoved} />
                                             </Grid>
                                         </Hidden>
                                     </Grid>

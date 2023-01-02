@@ -82,7 +82,6 @@ class PackageGridItemBase extends React.Component
                         }
                     />
                     <CardContent sx={{flexGrow: 1}}>
-                        <Button variant="text" onClick={onCopyTrackingNumberClick} disabled={popoverShowing}>{item.tracking_number}</Button>
                         {latestEvent && (
                             <Typography variant="h6">{latestEvent.event_text}</Typography>
                         )}
@@ -92,6 +91,9 @@ class PackageGridItemBase extends React.Component
                         {latestEvent && (
                             <Timestamp value={latestEvent.timestamp} />
                         )}
+                    </CardContent>
+                    <CardContent>
+                        <Button variant="text" onClick={onCopyTrackingNumberClick} disabled={popoverShowing}>{item.tracking_number}</Button>
                     </CardContent>
                     <CardActions disableSpacing>
                         {item.tracking_url && (
