@@ -4,13 +4,16 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/littlehawk93/columba/providers/fedex"
+	"github.com/littlehawk93/columba/providers/ups"
 	"github.com/littlehawk93/columba/providers/usps"
 	"github.com/littlehawk93/columba/tracking"
 )
 
 var serviceProviders = map[string]tracking.Provider{
-	/*"fedex": &fedex.Provider{},*/
-	"usps": &usps.Provider{},
+	"fedex": &fedex.Provider{},
+	"usps":  &usps.Provider{},
+	"ups":   &ups.Provider{},
 }
 
 // GetServiceProvider get a provider from a string, returns nil if the serviceID is invalid
