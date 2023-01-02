@@ -9,8 +9,10 @@ import AppBar from "@mui/material/AppBar"
 import Toolbar from "@mui/material/Toolbar"
 import Typography from "@mui/material/Typography"
 import Grid from "@mui/material/Grid"
+import AppFooter from "./Components/General/AppFooter"
 import NewPackageForm from "./Components/Package/NewPackageForm"
 import PackageList from "./Components/Package/PackageCardList"
+import PackageGrid from "./Components/Package/PackageGrid"
 import PackageTable from "./Components/Package/PackageTable"
 import ErrorSnackbar from "./Components/Snackbars/ErrorSnackbar"
 import Select from "@mui/material/Select"
@@ -269,13 +271,15 @@ class ColumbaApp extends React.Component
                                 <Toolbar>
                                     <Hidden smDown>
                                         <ToggleButtonGroup exclusive value={layoutName} onChange={this.onChangeLayout} aria-label="packages layout">
-                                            <ToggleButton value="cards" aria-label="cards layout" title="Cards"><ViewStreamIcon /></ToggleButton>
-                                            <ToggleButton value="grid" aria-label="grid layout" title="Grid"><WindowIcon /></ToggleButton>
-                                            <ToggleButton value="table" aria-label="table layout" title="Table"><TableRowsIcon /></ToggleButton>
+                                            <ToggleButton value="cards" aria-label="cards layout" title="Cards"><ViewStreamIcon sx={{color: theme.palette.common.white}} /></ToggleButton>
+                                            <ToggleButton value="grid" aria-label="grid layout" title="Grid"><WindowIcon sx={{color: theme.palette.common.white}} /></ToggleButton>
+                                            <ToggleButton value="table" aria-label="table layout" title="Table"><TableRowsIcon sx={{color: theme.palette.common.white}} /></ToggleButton>
                                         </ToggleButtonGroup>
                                     </Hidden>
                                     <Typography variant="h5" component="div" sx={{flexGrow: 1, textAlign: "center" }}>Columba Package Tracking</Typography>
                                     <Select
+                                        color="secondary"
+                                        sx={{color: theme.palette.common.white}}
                                         size="small"
                                         onChange={this.onChangeTheme}
                                         name="select-theme"
@@ -288,7 +292,7 @@ class ColumbaApp extends React.Component
                                     </Select>
                                 </Toolbar>
                             </AppBar>
-                            <Grid container spacing={2} sx={{ marginTop: "60px" }}>
+                            <Grid container spacing={2} sx={{ marginTop: "60px", marginBottom: "60px" }}>
                                 <Grid item md={1} lg={2}></Grid>
                                 <Grid item xs={12} md={10} lg={8}>
                                     <Grid container spacing={2}>
@@ -299,6 +303,9 @@ class ColumbaApp extends React.Component
                                             <Grid item xs={12}>
                                                 {layoutName === "cards" && (
                                                     <PackageList packages={packages} onPackageRemoved={this.onPackageRemoved} />
+                                                )}
+                                                {layoutName === "grid" && (
+                                                    <PackageGrid packages={packages} onPackageRemoved={this.onPackageRemoved} />
                                                 )}
                                                 {layoutName === "table" && (
                                                     <PackageTable packages={packages} onPackageRemoved={this.onPackageRemoved} />
@@ -314,6 +321,7 @@ class ColumbaApp extends React.Component
                                 </Grid>
                                 <Grid item md={2} lg={3}></Grid>
                             </Grid>
+                            <AppFooter />
                             {error && (<ErrorSnackbar open={error != null && error != ""} error={error} onClose={this.clearError} />)}
                             {confirm.show && (
                                 <ConfirmDialog 

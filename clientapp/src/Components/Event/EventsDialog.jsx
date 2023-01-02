@@ -2,37 +2,32 @@ import React from "react"
 import Dialog from "@mui/material/Dialog"
 import DialogTitle from "@mui/material/DialogTitle"
 import DialogContent from "@mui/material/DialogContent"
-import DialogContentText from "@mui/material/DialogContentText"
 import DialogActions from "@mui/material/DialogActions"
 import Button from "@mui/material/Button"
+import EventTable from "./EventTable"
 
-class ConfirmDialog extends React.Component
+class EventsDialog extends React.Component
 {
-    constructor(props) {
-        super(props);
-    }
-
     render() {
 
-        const { open, title, message, onConfirm, onCancel } = this.props;
+        const { open, events, onClose } = this.props;
 
         return (
             <Dialog
                 open={open}
-                onClose={onCancel}
+                onClose={onClose}
                 disableEscapeKeyDown
             >
-                <DialogTitle>{title}</DialogTitle>
+                <DialogTitle>Tracking Events</DialogTitle>
                 <DialogContent>
-                    <DialogContentText>{message}</DialogContentText>
+                    <EventTable events={events} />
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={onCancel} autoFocus>Cancel</Button>
-                    <Button onClick={onConfirm}>Confirm</Button>
+                    <Button onClick={onClose} autoFocus>Close</Button>
                 </DialogActions>
             </Dialog>
         );
     }
 }
 
-export default ConfirmDialog;
+export default EventsDialog;
