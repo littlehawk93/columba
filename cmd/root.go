@@ -69,13 +69,15 @@ func run(cmd *cobra.Command, args []string) {
 		log.Fatalf("Unable to set up database: %s\n", err.Error())
 	}
 
-	router := mux.NewRouter()
-	router = router.StrictSlash(true)
+	mainRouter := mux.NewRouter()
 
 	handler.SetConfiguration(configuration)
-	handler.AddHandlers(router)
+	handler.AddAPIHandlers(mainRouter)
 
-	if err := http.ListenAndServe(fmt.Sprintf("%s:%d", configuration.Web.BindAddress, configuration.Web.Port), router); err != nil {
+	fileServer := http.FileServer(http.Dir(configuration.WebRoot))
+	mainRouter.PathPrefix("/").Handler(fileServer)
+
+	if err := http.ListenAndServe(fmt.Sprintf("%s:%d", configuration.Web.BindAddress, configuration.Web.Port), mainRouter); err != nil {
 		log.Fatal(err)
 	}
 }

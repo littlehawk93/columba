@@ -16,8 +16,8 @@ func SetConfiguration(conf config.ApplicationConfiguration) {
 	configuration = conf
 }
 
-// AddHandlers binds all the API handlers for the web app to their endpoints
-func AddHandlers(r *mux.Router) {
+// AddAPIHandlers binds all the API handlers for the web app to their endpoints
+func AddAPIHandlers(r *mux.Router) {
 
 	api := r.PathPrefix("/api").Subrouter()
 
