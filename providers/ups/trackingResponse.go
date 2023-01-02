@@ -14,6 +14,14 @@ const (
 	shipmentProgressDetailTimestampFormat string = "01/02/2006 3:04 PM"
 )
 
+type trackingResponse struct {
+	Details []trackDetails `json:"trackDetails"`
+}
+
+type trackDetails struct {
+	ProgressDetails []shipmentProgressDetail `json:"shipmentProgressActivities"`
+}
+
 type shipmentProgressDetail struct {
 	DateStr  string `json:"date"`
 	TimeStr  string `json:"time"`
@@ -64,12 +72,4 @@ func (me shipmentProgressDetail) GetTimestamp() (time.Time, error) {
 	timestampString = strings.TrimSpace(regexp.MustCompile(`[^0-9AMP:\/\s]`).ReplaceAllString(timestampString, ""))
 
 	return time.Parse(shipmentProgressDetailTimestampFormat, timestampString)
-}
-
-type trackDetails struct {
-	ProgressDetails []shipmentProgressDetail `json:"shipmentProgressActivities"`
-}
-
-type trackingResponse struct {
-	Details trackDetails `json:"trackDetails"`
 }

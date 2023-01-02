@@ -75,22 +75,26 @@ func (me *Provider) GetTrackingEvents(trackingNumber string) ([]tracking.Event, 
 
 	events := make([]tracking.Event, 0)
 
-	if len(response.Details.ProgressDetails) > 0 {
-		for _, detail := range response.Details.ProgressDetails {
+	if len(response.Details) > 0 {
+		for _, detail := range response.Details {
+			if len(detail.ProgressDetails) > 0 {
+				for _, progressDetail := range detail.ProgressDetails {
 
-			timestamp, err := detail.GetTimestamp()
+					timestamp, err := progressDetail.GetTimestamp()
 
-			if err != nil {
-				return nil, err
+					if err != nil {
+						return nil, err
+					}
+
+					events = append(events, tracking.Event{
+						EventText: progressDetail.Activity,
+						Location:  progressDetail.GetLocation(),
+						Timestamp: &timestamp,
+						Details:   "",
+						IsCurrent: false,
+					})
+				}
 			}
-
-			events = append(events, tracking.Event{
-				EventText: detail.Activity,
-				Location:  detail.GetLocation(),
-				Timestamp: &timestamp,
-				Details:   "",
-				IsCurrent: false,
-			})
 		}
 	}
 
