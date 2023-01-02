@@ -1,8 +1,6 @@
 import React from "react"
 import { formatLocationString } from "../../API/LocationAPI"
-import { eventIsDelivered, getPackageEvents } from "../../API/EventAPI"
-import { deletePackage, getLatestEvent } from "../../API/PackageAPI"
-import { ErrorContext } from "../../Context/Error"
+import { eventIsDelivered } from "../../API/EventAPI"
 import Grid from "@mui/material/Grid"
 import Card from '@mui/material/Card'
 import CardHeader from "@mui/material/CardHeader"
@@ -16,11 +14,8 @@ import RefreshIcon from "@mui/icons-material/Refresh"
 import DeleteIcon from "@mui/icons-material/Delete"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import EventTable from "../Event/EventTable"
-import ConfirmDialog from "../Dialogs/ConfirmDialog"
-import Popover from "@mui/material/Popover"
-import Moment from "react-moment"
-
-const autoRefreshIntervalMillis = 300000; // 5 minutes in milliseconds
+import Timestamp from "../General/Timestamp"
+import PackageComponent from "./PackageComponent"
 
 const refreshAnimation = {
     animation: "spin 2s linear infinite", 
@@ -34,63 +29,14 @@ const refreshAnimation = {
     },
 };
 
-class PackageCard extends React.Component
+class PackageCardBase extends React.Component
 {
     constructor(props) {
         super(props);
 
         this.state = {
-            showClipboardPopover: false,
-            clipboardPopoverAnchorEl: null,
-            showRemoveConfirmDialog: false,
-            refreshing: false,
             expanded: false,
-            item: props.item,
-            refreshJob: setTimeout(this.onRefresh, autoRefreshIntervalMillis)
         };
-    }
-
-    componentWillUnmount() {
-
-        if (this.state.refreshJob) {
-            clearTimeout(this.state.refreshJob);
-            this.setState({refreshJob: null});
-        }
-    }
-
-    onRefresh = (e) => {
-
-        if (e) {
-            clearTimeout(this.state.refreshJob);
-        }
-
-        this.setState({
-            refreshing: true,
-            refreshJob: setTimeout(this.onRefresh, autoRefreshIntervalMillis)
-        }, () => {
-            getPackageEvents(this.state.item.id, this.onEventsReceived, this.onError);
-        });
-    }
-
-    onEventsReceived = (events) => {
-
-        var item = this.state.item;
-
-        item.events = events;
-
-        this.setState({
-            item: item,
-            refreshing: false
-        });
-    }
-
-    onError = (error) => {
-
-        this.setState({refreshing: false}, () => {
-            if(this.props.onError) {
-                this.props.onError(error);
-            }
-        });
     }
 
     onToggleExpand = (e) => {
@@ -102,63 +48,9 @@ class PackageCard extends React.Component
         });
     }
 
-    onRemove = (e) => {
-
-        this.setState({
-            showRemoveConfirmDialog: true
-        });
-    }
-
-    onRemoveCancel = (e) => {
-
-        this.setState({
-            showRemoveConfirmDialog: false
-        });
-    }
-
-    onRemoveConfirm = (e) => {
-        this.setState({
-            showRemoveConfirmDialog: false
-        }, () => {
-            deletePackage(this.state.item.id, this.onRemoveSuccess, this.onRemoveError);
-        });
-    }
-
-    onRemoveSuccess = (pkg) => {
-        if(this.props.onRemove) {
-            this.props.onRemove(this.state.item);
-        }
-    }
-
-    onRemoveError = (error) => {
-        if(this.props.onError) {
-            this.props.onError(error);
-        }
-    }
-
-    onCopyTrackingNumber = (e) => {
-
-        const { item } = this.state;
-
-        var input = document.getElementById(item.id + "-tracking-number-clipboard");
-
-        if (input) {
-            const { value } = input;
-            navigator.clipboard.writeText(value).then(() => {
-                setTimeout(() => { this.onClipboardPopoverClose(); }, 1200);
-                this.setState({showClipboardPopover: true, clipboardPopoverAnchorEl: e.target});
-            });
-        }
-    }
-
-    onClipboardPopoverClose = () => {
-        this.setState({showClipboardPopover: false, clipboardPopoverAnchorEl: null});
-    }
-
     render() {
-
-        const { item } = this.state;
-        const latestEvent = getLatestEvent(item);
+        const { item, latestEvent, refreshing, popoverShowing, onRemoveClick, onCopyTrackingNumberClick, onRefreshClick } = this.props;
+        const { expanded } = this.state;
 
         var title = item.label ? item.label : item.tracking_number;
 
@@ -180,15 +72,15 @@ class PackageCard extends React.Component
                         <div>
                             <IconButton 
                                 title="Refresh Tracking Data" 
-                                disabled={this.state.refreshing}
-                                onClick={this.onRefresh}
+                                disabled={refreshing}
+                                onClick={onRefreshClick}
                             >
-                                <RefreshIcon sx={this.state.refreshing ? refreshAnimation : null }/>
+                                <RefreshIcon sx={refreshing ? refreshAnimation : null }/>
                             </IconButton>
                             <IconButton 
                                 title="Remove Package" 
-                                disabled={this.state.refreshing}
-                                onClick={this.onRemove}
+                                disabled={refreshing}
+                                onClick={onRemoveClick}
                             >
                                 <DeleteIcon />
                             </IconButton>
@@ -208,49 +100,33 @@ class PackageCard extends React.Component
                                 {latestEvent.event_text}
                             </Grid>
                             <Grid item xs={12} sm={12} md={4}>
-                                <Moment format="MMM D YYYY - h:mm A">{latestEvent.timestamp}</Moment>
+                                <Timestamp value={latestEvent.timestamp} />
                             </Grid>
                         </Grid>
                     </CardContent>
                 )}
                 <CardActions disableSpacing>
-                    <Button size="small" sx={{ marginRight: 2 }} onClick={this.onCopyTrackingNumber} disabled={this.state.showClipboardPopover}>Copy Tracking #</Button>
+                    <Button size="small" sx={{ marginRight: 2 }} onClick={onCopyTrackingNumberClick} disabled={popoverShowing}>Copy Tracking #</Button>
                     {item.tracking_url && (
                         <Button component="a" size="small" href={item.tracking_url} target="_blank">Track with {item.service}</Button>
                     )}
                     <IconButton onClick={this.onToggleExpand} sx={{ marginLeft: "auto" }}>
-                        <ExpandMoreIcon sx={{transform: this.state.expanded ? "rotate(180deg)" : "rotate(0deg)"}} />
+                        <ExpandMoreIcon sx={{transform: expanded ? "rotate(180deg)" : "rotate(0deg)"}} />
                     </IconButton>
                 </CardActions>
-                <Collapse in={this.state.expanded} unmountOnExit>
+                <Collapse in={expanded} unmountOnExit>
                     <CardContent>
                         <EventTable events={item.events} />
                     </CardContent>
                 </Collapse>
-                <ConfirmDialog 
-                    open={this.state.showRemoveConfirmDialog}
-                    title="Remove Package" 
-                    message="Remove package from listing? This action cannot be un-done." 
-                    onCancel={this.onRemoveCancel} 
-                    onConfirm={this.onRemoveConfirm} />
-                <Popover
-                    open={this.state.showClipboardPopover}
-                    anchorEl={this.state.clipboardPopoverAnchorEl}
-                    anchorOrigin={{vertical: "center", horizontal: "right"}}
-                    onClose={this.onClipboardPopoverClose}
-                    >
-                        <Typography sx={{ p: 2 }}>Copied to Clipboard</Typography>
-                </Popover>
             </Card>
         );
     }
 }
 
-export default function FPackageCard(props) {
+export default function PackageCard(props) {
 
     return (
-        <ErrorContext.Consumer>
-            {error => <PackageCard onError={error.onError} {...props} />}
-        </ErrorContext.Consumer>
+        <PackageComponent component={<PackageCardBase />} {...props} />
     )
 }
