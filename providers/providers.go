@@ -9,6 +9,7 @@ import (
 )
 
 var serviceProviders = map[string]tracking.Provider{
+	/*"fedex": &fedex.Provider{},*/
 	"usps": &usps.Provider{},
 }
 

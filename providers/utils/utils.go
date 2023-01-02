@@ -2,6 +2,7 @@ package utils
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/littlehawk93/columba/tracking"
@@ -45,4 +46,16 @@ func ParseTrackingEvents(url, selector string, parser TrackingEventParser) ([]tr
 	})
 
 	return results, err
+}
+
+// ElemExistsWithData returns the first matching element or nil if no element found and returns true if the elem has any text in it
+func ElemExistsWithData(s *goquery.Selection, selector string) (*goquery.Selection, bool) {
+
+	elem := s.Find(selector).First()
+
+	if elem == nil {
+		return nil, false
+	}
+
+	return elem, len(strings.TrimSpace(elem.Text())) > 0
 }
