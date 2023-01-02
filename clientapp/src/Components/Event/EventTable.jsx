@@ -7,7 +7,7 @@ import TableHead from "@mui/material/TableHead"
 import TableBody from "@mui/material/TableBody"
 import TableRow from "@mui/material/TableRow"
 import TableCell from "@mui/material/TableCell"
-import Moment from "react-moment"
+import Timestamp from "../General/Timestamp"
 
 const getBackgroundColor = (color, mode) => mode == "dark" ? darken(color, 0.6) : lighten(color, 0.6);
 
@@ -38,7 +38,7 @@ class EventRow extends React.Component {
                     {event.event_text}
                 </TableCell>
                 <TableCell>
-                    <Moment format="MMM D YYYY - h:mm A">{event.timestamp}</Moment>
+                    <Timestamp value={event.timestamp} />
                 </TableCell>
             </TableRow>
         )

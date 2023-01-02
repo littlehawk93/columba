@@ -1,7 +1,7 @@
 import React from "react"
 import Moment from "react-moment"
 
-const timestampFormat = "MMM D YYYY - h:mm A";
+const timestampFormat = "MMM\u00a0D\u00a0YYYY h:mm\u00a0A";
 
 class Timestamp extends React.Component
 {
