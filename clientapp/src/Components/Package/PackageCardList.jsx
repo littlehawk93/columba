@@ -11,7 +11,7 @@ class PackageCardList extends React.Component
         return (
             <Stack spacing={2}>
                 {packages && packages.map((pkg) => {
-                    return (<PackageCard item={pkg} key={pkg.id} onPackageRemoved={this.props.onPackageRemoved} />);
+                    return (<PackageCard item={pkg} key={"package-card-" + pkg.id} onPackageRemoved={this.props.onPackageRemoved} />);
                 })}
             </Stack>
         );

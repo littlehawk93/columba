@@ -13,7 +13,7 @@ class PackageTable extends React.Component
         const { packages } = this.props;
 
         return (
-            <Table hover striped>
+            <Table>
                 <TableHead>
                     <TableRow>
                         <TableCell>Label</TableCell>
@@ -26,7 +26,7 @@ class PackageTable extends React.Component
                 </TableHead>
                 <TableBody>
                     {packages && packages.map((pkg) => {
-                        return (<PackageTableRow key={"package-table-row-" + pkg.id} item={pkg} />);
+                        return (<PackageTableRow key={"package-table-row-" + pkg.id} item={pkg} onPackageRemoved={this.props.onPackageRemoved} />);
                     })}
                 </TableBody>
             </Table>

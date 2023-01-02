@@ -10,7 +10,7 @@ export function getPackageEvents(packageId, onSuccess, onError) {
 }
 
 export function eventIsDelivered(event) {
-    if (event) {
+    if (event && event !== null && event !== undefined) {
         const eventText = event.event_text.toLowerCase().replace(/[^a-z]+/, " ");
         return eventText.includes("delivered"); 
     }
