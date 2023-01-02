@@ -6,6 +6,8 @@ import Hidden from "@mui/material/Hidden"
 import Typography from "@mui/material/Typography"
 import IconButton from "@mui/material/IconButton"
 import GitHubIcon from "@mui/icons-material/GitHub"
+import PersonIcon from "@mui/icons-material/Person"
+import CoffeeIcon from "@mui/icons-material/Coffee"
 
 
 const getModifiedColor = (color, mode) => mode == "dark" ? darken(color, 0.6) : lighten(color, 0.6);
@@ -30,7 +32,7 @@ class AppFooterBase extends React.Component
                 <Grid container>
                     <Hidden mdDown>
                         <Grid item xs={4}>
-                            <Typography variant="subtitle2" textAlign="left" sx={{ lineHeight: '60px' }}>Feedback? Visit Columba's <a style={{ color: theme.palette.text.primary }} href="https://github.com/littlehawk93/columba/issues" target="_blank">project page</a></Typography>
+                            <Typography variant="subtitle2" textAlign="left" sx={{ lineHeight: '60px' }}>Feedback? Visit Columba's <a style={{ color: theme.palette.text.primary }} href="https://github.com/littlehawk93/columba/issues" target="_blank">Project Page</a></Typography>
                         </Grid>
                         <Grid item xs={4}>
                             <Typography variant="subtitle2" textAlign="center" sx={{ lineHeight: '60px' }}>Created By <a style={{ color: theme.palette.text.primary }} href="https://github.com/littlehawk93" target="_blank">littlehawk93</a></Typography>
@@ -39,28 +41,38 @@ class AppFooterBase extends React.Component
                             <Typography variant="subtitle2" textAlign="right" sx={{ lineHeight: '60px' }}>Like Columba? <a style={{ color: theme.palette.text.primary }} href="https://www.buymeacoffee.com/littlehawk93" target="_blank">Buy me a Coffee</a></Typography>
                         </Grid>
                     </Hidden>
-                    <Hidden smDown mdUp>
+                    <Hidden mdUp smDown>
                         <Grid item xs={4}>
-                            <Typography variant="subtitle2" textAlign="left" sx={{ lineHeight: '60px' }}>Feedback? Visit Columba's <a style={{ color: theme.palette.text.primary }} href="https://github.com/littlehawk93/columba/issues" target="_blank">project page</a></Typography>
+                            <Typography variant="subtitle2" textAlign="left" sx={{ lineHeight: '60px' }}><a style={{ color: theme.palette.text.primary }} href="https://github.com/littlehawk93/columba/issues" target="_blank">Columba Project</a></Typography>
                         </Grid>
                         <Grid item xs={4}>
-                            <Typography variant="subtitle2" textAlign="center" sx={{ lineHeight: '60px' }}>Created By <a style={{ color: theme.palette.text.primary }} href="https://github.com/littlehawk93" target="_blank">littlehawk93</a></Typography>
+                            <Typography variant="subtitle2" textAlign="center" sx={{ lineHeight: '60px' }}><a style={{ color: theme.palette.text.primary }} href="https://github.com/littlehawk93" target="_blank">littlehawk93</a></Typography>
                         </Grid>
                         <Grid item xs={4}>
-                            <Typography variant="subtitle2" textAlign="right" sx={{ lineHeight: '60px' }}>Like Columba? <a style={{ color: theme.palette.text.primary }} href="https://www.buymeacoffee.com/littlehawk93" target="_blank">Buy me a Coffee</a></Typography>
+                            <Typography variant="subtitle2" textAlign="right" sx={{ lineHeight: '60px' }}><a style={{ color: theme.palette.text.primary }} href="https://www.buymeacoffee.com/littlehawk93" target="_blank">Buy me a Coffee</a></Typography>
                         </Grid>
                     </Hidden>
-                    <Hidden mdUp>
+                    <Hidden smUp>
                         <Grid item xs={4}>
-                            <IconButton href="https://github.com/littlehawk93/columba/issues" target="_blank">
-                                <GitHubIcon />
-                            </IconButton>
+                            <Grid container justifyContent="flex-start">
+                                <IconButton href="https://github.com/littlehawk93/columba/issues" target="_blank" title="Give Feedback" textAlign="left">
+                                    <GitHubIcon />
+                                </IconButton>
+                            </Grid>
                         </Grid>
                         <Grid item xs={4}>
-                            <Typography variant="subtitle2" textAlign="center" sx={{ lineHeight: '60px' }}>Created By <a style={{ color: theme.palette.text.primary }} href="https://github.com/littlehawk93" target="_blank">littlehawk93</a></Typography>
+                            <Grid container justifyContent="center">
+                                <IconButton href="https://github.com/littlehawk93" target="_blank" title="Author's Profile" textAlign="center">
+                                    <PersonIcon />
+                                </IconButton>
+                            </Grid>
                         </Grid>
                         <Grid item xs={4}>
-                            <Typography variant="subtitle2" textAlign="center" sx={{ lineHeight: '60px' }}>Like Columba? <a style={{ color: theme.palette.text.primary }} href="https://www.buymeacoffee.com/littlehawk93" target="_blank">Buy me a Coffee</a></Typography>
+                            <Grid container justifyContent="flex-end">
+                                <IconButton href="https://www.buymeacoffee.com/littlehawk93" target="_blank" title="Buy me a coffee" sm={{ marginLeft: "auto" }}>
+                                    <CoffeeIcon />
+                                </IconButton>
+                            </Grid>
                         </Grid>
                     </Hidden>
                 </Grid>
