@@ -1,4 +1,5 @@
 import React from "react"
+import { lighten } from "@mui/material/styles"
 import { formatLocationString } from "../../API/LocationAPI"
 import { eventIsDelivered } from "../../API/EventAPI"
 import Grid from "@mui/material/Grid"
@@ -14,6 +15,12 @@ import DeleteIcon from "@mui/icons-material/Delete"
 import Timestamp from "../General/Timestamp"
 import PackageComponent from "./PackageComponent"
 import EventsDialog from "../Event/EventsDialog"
+
+const getTextColor = (color, mode) => mode == "dark" ? lighten(color, 0.3) : color;
+
+const deliveredStyle = {
+    color: (theme) => getTextColor(theme.palette.success.main, theme.palette.mode)
+};
 
 const refreshAnimation = {
     animation: "spin 2s linear infinite", 
@@ -54,6 +61,10 @@ class PackageGridItemBase extends React.Component
 
         const { showEventDialog } = this.state;
 
+        const isDelivered = eventIsDelivered(latestEvent);
+
+        console.log(isDelivered);
+
         return (
             <Grid item xs={12} md={6} lg={4}>
                 <input id={item.id + "-tracking-number-clipboard"} type="hidden" value={item.tracking_number} />
@@ -83,7 +94,7 @@ class PackageGridItemBase extends React.Component
                     />
                     <CardContent sx={{flexGrow: 1}}>
                         {latestEvent && (
-                            <Typography variant="h6">{latestEvent.event_text}</Typography>
+                            <Typography variant="h6" sx={isDelivered ? deliveredStyle : {}}>{latestEvent.event_text}</Typography>
                         )}
                         {latestEvent && (
                             <Typography variant="body1">{formatLocationString(latestEvent.location)}</Typography>
