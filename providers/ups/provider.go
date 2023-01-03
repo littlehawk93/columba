@@ -63,7 +63,7 @@ func (me *Provider) GetTrackingEvents(trackingNumber string) ([]tracking.Event, 
 
 	response := &trackingResponse{}
 
-	if err = utils.GetResponseJSON(client, req, *response); err != nil {
+	if err = utils.GetResponseJSON(client, req, response); err != nil {
 		return nil, err
 	}
 

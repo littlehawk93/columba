@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/cookiejar"
 	"regexp"
@@ -19,6 +20,8 @@ const (
 	userAgentWin10Edge       string = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246"
 	cleanLocationRegexCutset string = `(^[^A-Za-z0-9]+)|([^A-Za-z0-9]+$)`
 )
+
+var DebugRequests bool = false
 
 // TrackingEventParser definition for a function that returns a tracking event from an HTML selection
 type TrackingEventParser func(doc *goquery.Selection) (tracking.Event, error)
@@ -139,7 +142,12 @@ func GetResponseBytes(client *http.Client, req *http.Request) ([]byte, error) {
 
 	defer res.Body.Close()
 
-	return ioutil.ReadAll(res.Body)
+	b, err := ioutil.ReadAll(res.Body)
+
+	if err == nil && DebugRequests {
+		log.Println(string(b))
+	}
+	return b, err
 }
 
 // NewClientWithCookies
