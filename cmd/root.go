@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/littlehawk93/columba/config"
 	"github.com/littlehawk93/columba/handler"
+	"github.com/littlehawk93/columba/providers/fedex"
 	"github.com/littlehawk93/columba/tracking"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -58,6 +60,19 @@ func initConfig() {
 }
 
 func run(cmd *cobra.Command, args []string) {
+
+	prov := &fedex.Provider{}
+
+	events, err := prov.GetTrackingEvents("621648671050")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	b, _ := json.MarshalIndent(&events, "", "  ")
+	fmt.Println(string(b))
+
+	return
 
 	db, err := configuration.Database.Open()
 

@@ -66,10 +66,15 @@ func (me shipmentProgressDetail) GetLocation() *tracking.Location {
 	}
 }
 
-func (me shipmentProgressDetail) GetTimestamp() (time.Time, error) {
+func (me shipmentProgressDetail) GetTimestamp() (*time.Time, error) {
+
+	if me.DateStr == "" && me.TimeStr == "" {
+		return nil, nil
+	}
 
 	timestampString := fmt.Sprintf("%s %s", me.DateStr, me.TimeStr)
 	timestampString = strings.TrimSpace(regexp.MustCompile(`[^0-9AMP:\/\s]`).ReplaceAllString(timestampString, ""))
 
-	return time.Parse(shipmentProgressDetailTimestampFormat, timestampString)
+	t, err := time.Parse(shipmentProgressDetailTimestampFormat, timestampString)
+	return &t, err
 }

@@ -2,29 +2,21 @@ package fedex
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
-	"regexp"
-	"strings"
-	"time"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/littlehawk93/columba/providers/utils"
 	"github.com/littlehawk93/columba/tracking"
 )
 
-var trackingEventDateFormats []string = []string{
-	"1/02/2003 at 3:04 PM",
-	"1/02/2003 3:04 PM",
-	"1/02/2003",
-}
-
 const (
-	urlFormat                            string = "https://www.fedex.com/fedextrack/?tracknumbers=%s"
-	id                                   string = "FedEx"
-	trackingEventItemSelector            string = "div.shipment-status-progress-container div.shipment-status-progress-step"
-	trackingEventStatusSelector          string = "span.shipment-status-progress-step-label"
-	trackingEventInfoSelector            string = "h5.shipment-status-progress-step-label-info"
-	trackingEventLocationAndDateSelector string = "div.shipment-status-progress-step-content span.shipment-status-progress-step-label-content"
+	tokenClientCredentials string = "l7xx474b79016a4d4ec5a60bf7a7e5e7e6fe"
+	tokenClientSecret      string = "448399ccafaa4f62a4ed202fc5ef3a01"
+
+	urlFormat      string = "https://www.fedex.com/fedextrack/?tracknumbers=%s"
+	tokenUrlFormat string = "https://api.fedex.com/auth/oauth/v2/token?grant_type=client_credentials&client_id=%s&client_secret=%s"
+	apiUrl         string = "https://api.fedex.com/track/v2/shipments"
+	id             string = "FedEx"
 )
 
 // Provider extends the service.Provider interface for FedEx
@@ -44,112 +36,70 @@ func (me *Provider) GetTrackingURL(trackingNumber string) string {
 // GetTrackingEvents get all tracking events for a given tracking number
 func (me *Provider) GetTrackingEvents(trackingNumber string) ([]tracking.Event, error) {
 
-	return utils.ParseTrackingEvents(me.GetTrackingURL(trackingNumber), trackingEventItemSelector, trackingEventParser)
-}
+	client, err := utils.NewClientWithCookies()
 
-func trackingEventParser(s *goquery.Selection) (tracking.Event, error) {
-
-	event := tracking.Event{}
-
-	if statusElem, ok := utils.ElemExistsWithData(s, trackingEventStatusSelector); ok {
-		event.EventText = strings.TrimSpace(statusElem.Text())
-	} else if statusElem, ok := utils.ElemExistsWithData(s, trackingEventInfoSelector); ok {
-		event.EventText = strings.TrimSpace(statusElem.Text())
+	if err != nil {
+		return nil, err
 	}
 
-	s.Find(trackingEventLocationAndDateSelector).Each(func(idx int, item *goquery.Selection) {
+	req, err := utils.CreateRequest(http.MethodGet, fmt.Sprintf(urlFormat, url.QueryEscape(trackingNumber)), nil)
 
-		if event.Timestamp == nil {
-			if date, err := cleanAndParseDate(item.Text()); err == nil {
-				event.Timestamp = &date
-				return
-			}
-		}
-
-		if event.Location == nil {
-			if location, err := cleanAndParseLocation(item.Text()); err == nil {
-				event.Location = location
-				return
-			}
-		}
-	})
-
-	if attr, ok := s.Attr("class"); ok && strings.Contains(attr, "active") {
-		event.IsCurrent = true
-	} else {
-		event.IsCurrent = false
+	if err != nil {
+		return nil, err
 	}
 
-	return event, nil
-}
-
-func cleanAndParseDate(dateStr string) (time.Time, error) {
-
-	dateStr = regexp.MustCompile(`\s+`).ReplaceAllString(strings.TrimSpace(dateStr), " ")
-
-	if idx := strings.Index(dateStr, " am "); idx != -1 && len(dateStr) > idx+4 {
-		dateStr = dateStr[:idx+3]
-	} else if idx := strings.Index(dateStr, " pm "); idx != -1 && len(dateStr) > idx+4 {
-		dateStr = dateStr[:idx+3]
+	if _, err = utils.GetResponseBytes(client, req); err != nil {
+		return nil, err
 	}
 
-	var result time.Time
-	var err error
-
-	for _, format := range trackingEventDateFormats {
-		if result, err = time.Parse(format, dateStr); err == nil {
-			break
-		}
+	if req, err = utils.CreateRequest(http.MethodPost, fmt.Sprintf(tokenUrlFormat, tokenClientCredentials, tokenClientSecret), nil); err != nil {
+		return nil, err
 	}
 
-	return result, err
-}
+	token := &authToken{}
 
-func cleanAndParseLocation(locationStr string) (*tracking.Location, error) {
-
-	locationStr = strings.TrimSpace(locationStr)
-
-	location := &tracking.Location{
-		Facility: "",
+	if err = utils.GetResponseJSON(client, req, token); err != nil {
+		return nil, err
 	}
 
-	words := strings.Fields(locationStr)
+	trackingRequest := newTrackingRequest(trackingNumber)
 
-	for i := 0; i < len(words); i++ {
-		words[i] = cleanLocationWord(words[i])
+	if req, err = utils.CreateJSONRequest(http.MethodPost, apiUrl, &trackingRequest); err != nil {
+		return nil, err
 	}
 
-	stateIndex := -1
-	zipIndex := -1
+	trackingResponse := &trackingResponse{}
 
-	for i, word := range words {
-		if tracking.IsStateAbbreviation(word) && stateIndex == -1 {
-			stateIndex = i
-		} else if tracking.IsZipCode(word) && zipIndex == -1 {
-			zipIndex = i
-		}
-
-		if stateIndex != -1 && zipIndex != -1 {
-			break
-		}
+	if err = utils.GetResponseJSON(client, req, trackingResponse); err != nil {
+		return nil, err
 	}
 
-	if stateIndex > -1 {
-		location.City = strings.Join(words[:stateIndex], " ")
-		location.State = strings.ToUpper(words[stateIndex])
+	events := make([]tracking.Event, 0)
 
-		if zipIndex > -1 {
-			location.Zip = words[zipIndex]
-			if zipIndex+1 < len(words) {
-				location.Facility = strings.Join(words[zipIndex+1:], " ")
+	if trackingResponse != nil && len(trackingResponse.Output.Packages) > 0 {
+		for _, responsePackage := range trackingResponse.Output.Packages {
+			if len(responsePackage.ScanEventList) > 0 {
+				for _, evt := range responsePackage.ScanEventList {
+
+					t, err := evt.GetTimestamp()
+
+					if err != nil {
+						return nil, err
+					}
+
+					event := tracking.Event{
+						EventText: evt.Status,
+						Details:   evt.Details,
+						Location:  evt.GetLocation(),
+						Timestamp: t,
+						IsCurrent: false,
+					}
+
+					events = append(events, event)
+				}
 			}
 		}
 	}
 
-	return location, nil
-}
-
-func cleanLocationWord(word string) string {
-
-	return regexp.MustCompile(`(^[^A-Za-z0-9]+)|([^A-Za-z0-9]+$)`).ReplaceAllString(word, "")
+	return events, nil
 }

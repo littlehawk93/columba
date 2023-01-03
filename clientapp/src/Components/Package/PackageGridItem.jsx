@@ -63,8 +63,6 @@ class PackageGridItemBase extends React.Component
 
         const isDelivered = eventIsDelivered(latestEvent);
 
-        console.log(isDelivered);
-
         return (
             <Grid item xs={12} md={6} lg={4}>
                 <input id={item.id + "-tracking-number-clipboard"} type="hidden" value={item.tracking_number} />

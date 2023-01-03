@@ -1,7 +1,12 @@
 package utils
 
 import (
+	"bytes"
+	"encoding/json"
+	"io"
+	"io/ioutil"
 	"net/http"
+	"net/http/cookiejar"
 	"regexp"
 	"strings"
 
@@ -75,4 +80,75 @@ func GetUserAgent() string {
 // CleanLocationWord cleans a particular city or state name for a location to standardize naming format across all shipping providers
 func CleanLocationWord(word string) string {
 	return strings.ToUpper(regexp.MustCompile(cleanLocationRegexCutset).ReplaceAllString(word, ""))
+}
+
+// CreateJSONRequest creates a new HTTP request, writes JSON data to the request body and sets the User-Agent and Content-Type headers. Returns any errors encountered
+func CreateJSONRequest[T any](method, url string, data T) (*http.Request, error) {
+
+	b, err := json.Marshal(data)
+
+	if err != nil {
+		return nil, err
+	}
+
+	r := bytes.NewReader(b)
+
+	req, err := CreateRequest(method, url, r)
+
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	return req, nil
+}
+
+// CreateRequest creates a new HTTP request and sets the User-Agent header
+func CreateRequest(method, url string, r io.Reader) (*http.Request, error) {
+
+	req, err := http.NewRequest(method, url, r)
+
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("User-Agent", GetUserAgent())
+
+	return req, nil
+}
+
+// GetResponseJSON executes a HTTP request using a HTTP client and parses the JSON data from the response. Returns any errors encountered
+func GetResponseJSON[T any](client *http.Client, req *http.Request, data T) error {
+
+	bytes, err := GetResponseBytes(client, req)
+
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(bytes, &data)
+}
+
+// GetResponseBytes executes a HTTP request using a HTTP client and reads all bytes from the response. Returns any errors encountered
+func GetResponseBytes(client *http.Client, req *http.Request) ([]byte, error) {
+
+	res, err := client.Do(req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer res.Body.Close()
+
+	return ioutil.ReadAll(res.Body)
+}
+
+// NewClientWithCookies
+func NewClientWithCookies() (*http.Client, error) {
+
+	jar, err := cookiejar.New(nil)
+
+	if err != nil {
+		return nil, err
+	}
+	return &http.Client{Jar: jar}, nil
 }

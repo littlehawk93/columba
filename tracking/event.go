@@ -39,11 +39,11 @@ func (me *Event) SetID() {
 
 	idBytes := make([]byte, 16)
 
-	if me.Timestamp == nil {
-		panic("Event timestamp is nil")
-	}
+	minutes := uint32(0)
 
-	minutes := uint32(me.Timestamp.Sub(time.Date(1970, 1, 1, 0, 0, 0, 0, time.Local)).Minutes())
+	if me.Timestamp != nil {
+		minutes = uint32(me.Timestamp.Sub(time.Date(1970, 1, 1, 0, 0, 0, 0, time.Local)).Minutes())
+	}
 
 	tmpBytes := make([]byte, 4)
 
