@@ -55,21 +55,21 @@ class AppFooterBase extends React.Component
                     <Hidden smUp>
                         <Grid item xs={4}>
                             <Grid container justifyContent="flex-start">
-                                <IconButton href="https://github.com/littlehawk93/columba/issues" target="_blank" title="Give Feedback" textAlign="left">
+                                <IconButton href="https://github.com/littlehawk93/columba/issues" target="_blank" title="Give Feedback" textAlign="left" size="large">
                                     <GitHubIcon />
                                 </IconButton>
                             </Grid>
                         </Grid>
                         <Grid item xs={4}>
                             <Grid container justifyContent="center">
-                                <IconButton href="https://github.com/littlehawk93" target="_blank" title="Author's Profile" textAlign="center">
+                                <IconButton href="https://github.com/littlehawk93" target="_blank" title="Author's Profile" textAlign="center" size="large">
                                     <PersonIcon />
                                 </IconButton>
                             </Grid>
                         </Grid>
                         <Grid item xs={4}>
                             <Grid container justifyContent="flex-end">
-                                <IconButton href="https://www.buymeacoffee.com/littlehawk93" target="_blank" title="Buy me a coffee" sm={{ marginLeft: "auto" }}>
+                                <IconButton href="https://www.buymeacoffee.com/littlehawk93" target="_blank" title="Buy me a coffee" size="large">
                                     <CoffeeIcon />
                                 </IconButton>
                             </Grid>

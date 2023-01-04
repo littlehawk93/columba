@@ -17,12 +17,15 @@ import PackageTable from "./Components/Package/PackageTable"
 import ErrorSnackbar from "./Components/Snackbars/ErrorSnackbar"
 import Select from "@mui/material/Select"
 import MenuItem from "@mui/material/MenuItem"
+import Fab from "@mui/material/Fab"
+import AddIcon from "@mui/icons-material/Add"
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup"
 import ToggleButton from "@mui/material/ToggleButton"
 import ViewStreamIcon from "@mui/icons-material/ViewStream"
 import TableRowsIcon from "@mui/icons-material/TableRows"
 import WindowIcon from "@mui/icons-material/Window"
 import ConfirmDialog from "./Components/Dialogs/ConfirmDialog"
+import NewPackageDialog from "./Components/Package/NewPackageDialog"
 import Popover from "@mui/material/Popover"
 
 
@@ -56,7 +59,8 @@ class ColumbaApp extends React.Component
                 message: "",
                 onConfirm: null,
                 onCancel: null,
-            }
+            },
+            showNewPackageDialog: false,
         };
     }
 
@@ -178,12 +182,20 @@ class ColumbaApp extends React.Component
         this.setState({error: null});
     }
 
+    onShowPackageDialog = () => {
+        this.setState({showNewPackageDialog: true});
+    }
+
+    onClosePackageDialog = () => {
+        this.setState({showNewPackageDialog: false});
+    }
+
     onPackageCreated = (pkg) => {
         var packages = this.state.packages;
 
         packages.push(pkg);
 
-        this.setState({packages: packages});
+        this.setState({packages: packages, showNewPackageDialog: false});
     }
 
     getTheme = () => {
@@ -259,7 +271,7 @@ class ColumbaApp extends React.Component
 
     render() {
 
-        const { packages, theme, error, themeName, layoutName, popover, confirm } = this.state;
+        const { packages, theme, error, themeName, layoutName, popover, confirm, showNewPackageDialog } = this.state;
 
         return (
             <ThemeProvider theme={theme}>
@@ -276,7 +288,12 @@ class ColumbaApp extends React.Component
                                             <ToggleButton value="table" aria-label="table layout" title="Table"><TableRowsIcon sx={{color: theme.palette.common.white}} /></ToggleButton>
                                         </ToggleButtonGroup>
                                     </Hidden>
-                                    <Typography variant="h5" component="div" sx={{flexGrow: 1, textAlign: "center" }}>Columba Package Tracking</Typography>
+                                    <Hidden smDown>
+                                        <Typography variant="h5" component="div" sx={{flexGrow: 1, textAlign: "center" }}>Columba Package Tracking</Typography>    
+                                    </Hidden>
+                                    <Hidden smUp>
+                                        <Typography variant="h5" component="div" sx={{flexGrow: 1, textAlign: "center" }}>Columba</Typography>    
+                                    </Hidden>
                                     <Select
                                         color="secondary"
                                         sx={{color: theme.palette.common.white}}
@@ -296,10 +313,10 @@ class ColumbaApp extends React.Component
                                 <Grid item md={1} lg={2}></Grid>
                                 <Grid item xs={12} md={10} lg={8}>
                                     <Grid container spacing={2}>
-                                        <Grid item xs={12}>
-                                            <NewPackageForm onPackageCreated={this.onPackageCreated} />
-                                        </Grid>
                                         <Hidden smDown>
+                                            <Grid item xs={12}>
+                                                <NewPackageForm onPackageCreated={this.onPackageCreated} />
+                                            </Grid>
                                             <Grid item xs={12}>
                                                 {layoutName === "cards" && (
                                                     <PackageList packages={packages} onPackageRemoved={this.onPackageRemoved} />
@@ -321,6 +338,7 @@ class ColumbaApp extends React.Component
                                 </Grid>
                                 <Grid item md={2} lg={3}></Grid>
                             </Grid>
+                            <div style={{ display: "block", height: 36 }} />
                             <AppFooter />
                             {error && (<ErrorSnackbar open={error != null && error != ""} error={error} onClose={this.clearError} />)}
                             {confirm.show && (
@@ -341,6 +359,27 @@ class ColumbaApp extends React.Component
                                         <Typography sx={{ p: 2 }}>{popover.text}</Typography>
                                 </Popover>
                             )}
+                            <Hidden smUp>
+                                <Fab 
+                                    aria-label="Add Package" 
+                                    color="primary"
+                                    onClick={this.onShowPackageDialog}
+                                    sx={{
+                                        position: "fixed",
+                                        bottom: 56,
+                                        right: 16,
+                                    }}
+                                >
+                                    <AddIcon />
+                                </Fab>
+                                {showNewPackageDialog && (
+                                    <NewPackageDialog 
+                                        open={showNewPackageDialog}
+                                        onPackageCreated={this.onPackageCreated}
+                                        onClose={this.onClosePackageDialog}
+                                    />
+                                )}
+                            </Hidden>
                         </ConfirmContext.Provider>
                     </PopoverContext.Provider>
                 </ErrorContext.Provider>

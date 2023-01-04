@@ -10,11 +10,9 @@ import (
 )
 
 const (
-	tokenClientCredentials string = "l7xx474b79016a4d4ec5a60bf7a7e5e7e6fe"
-	tokenClientSecret      string = "448399ccafaa4f62a4ed202fc5ef3a01"
-
+	propertiesUrl  string = "https://www.fedex.com/fedextrack/properties/WTRKProperties.json"
 	urlFormat      string = "https://www.fedex.com/fedextrack/?tracknumbers=%s"
-	tokenUrlFormat string = "https://api.fedex.com/auth/oauth/v2/token?grant_type=client_credentials&client_id=%s&client_secret=%s"
+	tokenUrlFormat string = "https://api.fedex.com/auth/oauth/v2/token?grant_type=client_credentials&client_id=%s&client_secret=%s&scope=oob"
 	apiUrl         string = "https://api.fedex.com/track/v2/shipments"
 	id             string = "FedEx"
 )
@@ -52,9 +50,21 @@ func (me *Provider) GetTrackingEvents(trackingNumber string) ([]tracking.Event, 
 		return nil, err
 	}
 
-	if req, err = utils.CreateRequest(http.MethodPost, fmt.Sprintf(tokenUrlFormat, tokenClientCredentials, tokenClientSecret), nil); err != nil {
+	properties := &propertiesResponse{}
+
+	if req, err = utils.CreateRequest(http.MethodGet, propertiesUrl, nil); err != nil {
 		return nil, err
 	}
+
+	if err = utils.GetResponseJSON(client, req, properties); err != nil {
+		return nil, err
+	}
+
+	if req, err = utils.CreateRequest(http.MethodPost, fmt.Sprintf(tokenUrlFormat, properties.API.ClientID, properties.API.ClientSecret), nil); err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	token := &authToken{}
 
@@ -68,6 +78,7 @@ func (me *Provider) GetTrackingEvents(trackingNumber string) ([]tracking.Event, 
 		return nil, err
 	}
 
+	token.setRequestAuthorization(req)
 	trackingResponse := &trackingResponse{}
 
 	if err = utils.GetResponseJSON(client, req, trackingResponse); err != nil {

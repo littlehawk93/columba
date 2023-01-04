@@ -98,6 +98,10 @@ func CreateJSONRequest[T any](method, url string, data T) (*http.Request, error)
 
 	req, err := CreateRequest(method, url, r)
 
+	if DebugRequests {
+		log.Println(string(b))
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -116,6 +120,10 @@ func CreateRequest(method, url string, r io.Reader) (*http.Request, error) {
 	}
 
 	req.Header.Set("User-Agent", GetUserAgent())
+
+	if DebugRequests {
+		log.Printf("%s: %s\n\n\n", method, url)
+	}
 
 	return req, nil
 }

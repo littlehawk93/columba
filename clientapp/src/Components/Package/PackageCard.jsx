@@ -16,6 +16,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import EventTable from "../Event/EventTable"
 import Timestamp from "../General/Timestamp"
 import PackageComponent from "./PackageComponent"
+import ContentCopyIcon from "@mui/icons-material/ContentCopy"
 
 const refreshAnimation = {
     animation: "spin 2s linear infinite", 
@@ -106,7 +107,7 @@ class PackageCardBase extends React.Component
                     </CardContent>
                 )}
                 <CardActions disableSpacing>
-                    <Button size="small" sx={{ marginRight: 2 }} onClick={onCopyTrackingNumberClick} disabled={popoverShowing}>Copy Tracking #</Button>
+                    <Button startIcon={<ContentCopyIcon />} size="small" sx={{ marginRight: 2 }} onClick={onCopyTrackingNumberClick} disabled={popoverShowing}>Copy Tracking #</Button>
                     {item.tracking_url && (
                         <Button component="a" size="small" href={item.tracking_url} target="_blank">Track with {item.service}</Button>
                     )}

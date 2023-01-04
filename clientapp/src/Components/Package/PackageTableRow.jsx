@@ -11,6 +11,7 @@ import Button from "@mui/material/Button"
 import RefreshIcon from "@mui/icons-material/Refresh"
 import DeleteIcon from "@mui/icons-material/Delete"
 import Timestamp from "../General/Timestamp"
+import ContentCopyIcon from "@mui/icons-material/ContentCopy"
 
 const getBackgroundColor = (color, mode) => mode == "dark" ? darken(color, 0.6) : lighten(color, 0.6);
 
@@ -49,7 +50,7 @@ class PackageTableRowBase extends React.Component
                 </TableCell>
                 <TableCell>
                     <input id={item.id + "-tracking-number-clipboard"} type="hidden" value={item.tracking_number} />
-                    <Button onClick={onCopyTrackingNumberClick} disabled={popoverShowing} variant="text">{item.tracking_number}</Button>
+                    <Button startIcon={<ContentCopyIcon />} onClick={onCopyTrackingNumberClick} disabled={popoverShowing} variant="text">{item.tracking_number}</Button>
                 </TableCell>
                 <TableCell>
                     {latestEvent ? latestEvent.event_text : ""}

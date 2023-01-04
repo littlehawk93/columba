@@ -15,6 +15,7 @@ import DeleteIcon from "@mui/icons-material/Delete"
 import Timestamp from "../General/Timestamp"
 import PackageComponent from "./PackageComponent"
 import EventsDialog from "../Event/EventsDialog"
+import ContentCopyIcon from "@mui/icons-material/ContentCopy"
 
 const getTextColor = (color, mode) => mode == "dark" ? lighten(color, 0.3) : color;
 
@@ -102,7 +103,7 @@ class PackageGridItemBase extends React.Component
                         )}
                     </CardContent>
                     <CardContent>
-                        <Button variant="text" onClick={onCopyTrackingNumberClick} disabled={popoverShowing}>{item.tracking_number}</Button>
+                        <Button startIcon={<ContentCopyIcon />} variant="text" onClick={onCopyTrackingNumberClick} disabled={popoverShowing}>{item.tracking_number}</Button>
                     </CardContent>
                     <CardActions disableSpacing>
                         {item.tracking_url && (

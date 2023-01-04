@@ -4,10 +4,8 @@ import Box from "@mui/material/Box"
 import Grid from "@mui/material/Grid"
 import TextField from "@mui/material/TextField"
 import ServiceSelect from "../Service/ServiceSelect"
-import Fab from "@mui/material/Fab"
 import Button from "@mui/material/Button"
 import AddIcon from "@mui/icons-material/Add"
-import Hidden from "@mui/material/Hidden"
 import { ErrorContext } from "../../Context/Error"
 
 class NewPackageForm extends React.Component
@@ -178,33 +176,19 @@ class NewPackageForm extends React.Component
                             disabled={this.state.processing}
                         />
                     </Grid>
-                    <Grid item xs={12} sm={3} md={1} lg={1} alignItems="flex-end">
-                        <Hidden mdDown>
-                            <Fab 
-                                title="Add New Package"
-                                onClick={this.onSubmit}
-                                size="medium"
-                                color="primary" 
-                                aria-label="Add Package"
-                                disabled={this.state.processing}
-                            >
-                                <AddIcon />
-                            </Fab>
-                        </Hidden>
-                        <Hidden mdUp>
-                            <Button
-                                title="Add New Package"
-                                onClick={this.onSubmit}
-                                size="large"
-                                variant="contained"
-                                color="primary"
-                                aria-label="Add Package"
-                                startIcon={<AddIcon />}
-                                disabled={this.state.processing}
-                            >
-                                Add Package
-                            </Button>
-                        </Hidden>
+                    <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <Button
+                            title="Add Package"
+                            onClick={this.onSubmit}
+                            size="large"
+                            variant="contained"
+                            color="primary"
+                            aria-label="Add Package"
+                            startIcon={<AddIcon />}
+                            disabled={this.state.processing}
+                        >
+                            Add Package
+                        </Button>
                     </Grid>
                 </Grid>
             </Box>
