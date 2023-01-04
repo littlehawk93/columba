@@ -289,7 +289,10 @@ class ColumbaApp extends React.Component
                                         </ToggleButtonGroup>
                                     </Hidden>
                                     <Hidden smDown>
-                                        <Typography variant="h5" component="div" sx={{flexGrow: 1, textAlign: "center" }}>Columba Package Tracking</Typography>    
+                                        <Typography variant="h5" component="div" sx={{flexGrow: 1, textAlign: "center" }}>
+                                            <img src="/img/main.png" style={{ width: 60, height: 40, marginRight: 12, display: "inline-block", marginBottom: -8 }} />
+                                            Columba <Hidden smDown>Package Tracking</Hidden>
+                                        </Typography>    
                                     </Hidden>
                                     <Hidden smUp>
                                         <Typography variant="h5" component="div" sx={{flexGrow: 1, textAlign: "center" }}>Columba</Typography>    
