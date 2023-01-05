@@ -85,7 +85,6 @@ func (me *Provider) GetTrackingEvents(trackingNumber string) ([]tracking.Event, 
 						Location:  progressDetail.GetLocation(),
 						Timestamp: timestamp,
 						Details:   "",
-						IsCurrent: false,
 					})
 				}
 			}

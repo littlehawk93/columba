@@ -69,12 +69,6 @@ func trackingEventParser(s *goquery.Selection) (tracking.Event, error) {
 		event.EventText = strings.TrimSpace(statusElem.Text())
 	}
 
-	if attr, ok := s.Attr("class"); ok && strings.Contains(attr, "current-step") {
-		event.IsCurrent = true
-	} else {
-		event.IsCurrent = false
-	}
-
 	return event, nil
 }
 
@@ -88,13 +82,13 @@ func cleanAndParseDate(dateStr string) (time.Time, error) {
 		dateStr = dateStr[:idx+3]
 	}
 
-	result, err := time.Parse(trackingEventDateFormat, dateStr)
+	result, err := time.ParseInLocation(trackingEventDateFormat, dateStr, time.Local)
 
 	if err == nil {
 		return result, err
 	}
 
-	return time.Parse(trackingEventShortDateFormat, dateStr)
+	return time.ParseInLocation(trackingEventShortDateFormat, dateStr, time.Local)
 }
 
 func cleanAndParseLocation(locationStr string) (*tracking.Location, error) {

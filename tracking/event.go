@@ -13,10 +13,6 @@ import (
 	"github.com/google/uuid"
 )
 
-const (
-	eventTimestampDateFormat string = "2006-01-02 15:04:05"
-)
-
 // Event defines a package tracking event. Either delivery or a package arriving at a post office, etc
 type Event struct {
 	id        uuid.UUID
@@ -25,7 +21,6 @@ type Event struct {
 	Details   string
 	Location  *Location
 	Timestamp *time.Time
-	IsCurrent bool
 }
 
 // GetID get the ID of this event
@@ -78,34 +73,14 @@ func (me *Event) SetID() {
 
 func (me Event) Insert(db *sql.Tx) error {
 
-	stmt, err := db.Prepare("INSERT INTO events (id, package_id, event_text, details, location, event_timestamp, is_current) VALUES (?,?,?,?,?,?,?)")
+	stmt, err := db.Prepare("INSERT INTO events (id, package_id, event_text, details, location, event_timestamp) VALUES (?,?,?,?,?,?)")
 
 	if err != nil {
 		return err
 	}
 
-	_, err = stmt.Exec(me.GetID().String(), me.PackageID, me.EventText, me.Details, me.getLocationString(), me.getTimestampString(), me.getIsCurrentFlag())
+	_, err = stmt.Exec(me.GetID().String(), me.PackageID, me.EventText, me.Details, me.getLocationString(), me.getTimestampString())
 	return err
-}
-
-func (me Event) Update(db *sql.Tx) error {
-
-	stmt, err := db.Prepare("UPDATE events SET is_current = ? WHERE id = ?")
-
-	if err != nil {
-		return err
-	}
-
-	_, err = stmt.Exec(me.getIsCurrentFlag(), me.GetID().String())
-	return err
-}
-
-func (me Event) getIsCurrentFlag() int {
-
-	if me.IsCurrent {
-		return 1
-	}
-	return 0
 }
 
 func (me Event) getLocationString() string {
@@ -121,7 +96,7 @@ func (me Event) getTimestampString() string {
 	if me.Timestamp == nil {
 		return ""
 	}
-	return me.Timestamp.Format(eventTimestampDateFormat)
+	return me.Timestamp.UTC().Format(time.RFC3339)
 }
 
 // MarshalJSON custom json marshalling interface method
@@ -191,7 +166,7 @@ func GetPackageEvents(db *sql.Tx, p *Package) ([]Event, error) {
 
 	results := make([]Event, 0)
 
-	stmt, err := db.Prepare("SELECT id, package_id, event_text, details, location, event_timestamp, is_current FROM events WHERE package_id = ? ORDER BY event_timestamp DESC")
+	stmt, err := db.Prepare("SELECT id, package_id, event_text, details, location, event_timestamp FROM events WHERE package_id = ? ORDER BY event_timestamp DESC")
 
 	if err != nil {
 		return results, err
@@ -227,9 +202,9 @@ func newEventFromSQL(rows *sql.Rows) (Event, error) {
 
 	var err error
 	var idStr, eventText, details, locationStr, timestampStr string
-	var packageId, isCurrentFlag int
+	var packageId int
 
-	if err = rows.Scan(&idStr, &packageId, &eventText, &details, &locationStr, &timestampStr, &isCurrentFlag); err != nil {
+	if err = rows.Scan(&idStr, &packageId, &eventText, &details, &locationStr, &timestampStr); err != nil {
 		return event, err
 	}
 
@@ -247,8 +222,6 @@ func newEventFromSQL(rows *sql.Rows) (Event, error) {
 		return event, err
 	}
 
-	event.IsCurrent = parseEventIsCurrentFlag(isCurrentFlag)
-
 	return event, nil
 }
 
@@ -259,10 +232,6 @@ func parseEventTimestamp(timestampStr string) (*time.Time, error) {
 	if timestampStr == "" {
 		return nil, nil
 	}
-	result, err := time.Parse(eventTimestampDateFormat, timestampStr)
+	result, err := time.Parse(time.RFC3339, timestampStr)
 	return &result, err
-}
-
-func parseEventIsCurrentFlag(isCurrentFlag int) bool {
-	return isCurrentFlag == 1
 }

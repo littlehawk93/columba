@@ -75,6 +75,6 @@ func (me shipmentProgressDetail) GetTimestamp() (*time.Time, error) {
 	timestampString := fmt.Sprintf("%s %s", me.DateStr, me.TimeStr)
 	timestampString = strings.TrimSpace(regexp.MustCompile(`[^0-9AMP:\/\s]`).ReplaceAllString(timestampString, ""))
 
-	t, err := time.Parse(shipmentProgressDetailTimestampFormat, timestampString)
+	t, err := time.ParseInLocation(shipmentProgressDetailTimestampFormat, timestampString, time.Local)
 	return &t, err
 }

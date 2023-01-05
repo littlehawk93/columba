@@ -103,7 +103,6 @@ func (me *Provider) GetTrackingEvents(trackingNumber string) ([]tracking.Event, 
 						Details:   evt.Details,
 						Location:  evt.GetLocation(),
 						Timestamp: t,
-						IsCurrent: false,
 					}
 
 					events = append(events, event)

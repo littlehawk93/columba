@@ -17,6 +17,6 @@ func migrateV1(db *sql.DB) error {
 		return err
 	}
 
-	_, err := db.Exec("CREATE TABLE IF NOT EXISTS events (id TEXT PRIMARY KEY NOT NULL,package_id INTEGER NOT NULL,event_text TEXT NULL,details TEXT NULL,location TEXT NULL,event_timestamp TEXT NULL,is_current INTEGER DEFAULT 0 NOT NULL,FOREIGN KEY (package_id) REFERENCES packages(id));")
+	_, err := db.Exec("CREATE TABLE IF NOT EXISTS events (id TEXT PRIMARY KEY NOT NULL,package_id INTEGER NOT NULL,event_text TEXT NULL,details TEXT NULL,location TEXT NULL,event_timestamp TEXT NULL,FOREIGN KEY (package_id) REFERENCES packages(id));")
 	return err
 }

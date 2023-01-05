@@ -7,7 +7,7 @@ class Timestamp extends React.Component
 {
     render() {
         const { value } = this.props;
-        return value ? (<Moment format={timestampFormat}>{value}</Moment>) : (<div></div>);
+        return value ? (<Moment format={timestampFormat} local>{value}</Moment>) : (<div></div>);
     }
 }
 
