@@ -5,13 +5,19 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/littlehawk93/columba/config"
 	"github.com/littlehawk93/columba/handler"
+	"github.com/littlehawk93/columba/services"
 	"github.com/littlehawk93/columba/tracking"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+)
+
+const (
+	backgroundEventUpdateServiceName string = "event-updater"
 )
 
 var configFile string
@@ -67,6 +73,10 @@ func run(cmd *cobra.Command, args []string) {
 
 	if err = tracking.Migrate(db); err != nil {
 		log.Fatalf("Unable to set up database: %s\n", err.Error())
+	}
+
+	if configuration.BackgroundUpdateTimeSeconds > 0 {
+		services.RunBackgroundService(backgroundEventUpdateServiceName, services.UpdatePackageEvents, configuration, time.Duration(configuration.BackgroundUpdateTimeSeconds)*time.Second)
 	}
 
 	mainRouter := mux.NewRouter()

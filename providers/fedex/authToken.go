@@ -3,6 +3,7 @@ package fedex
 import (
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 type authToken struct {
@@ -13,5 +14,5 @@ type authToken struct {
 }
 
 func (me authToken) setRequestAuthorization(r *http.Request) {
-	r.Header.Set("Authorization", fmt.Sprintf("%s %s", me.TokenType, me.AccessToken))
+	r.Header.Set("Authorization", fmt.Sprintf("%s %s", strings.TrimSpace(me.TokenType), strings.TrimSpace(me.AccessToken)))
 }

@@ -122,6 +122,7 @@ func CreateRequest(method, url string, r io.Reader) (*http.Request, error) {
 	req.Header.Set("User-Agent", GetUserAgent())
 
 	if DebugRequests {
+		log.Println("REQUEST")
 		log.Printf("%s: %s\n\n\n", method, url)
 	}
 
@@ -142,6 +143,15 @@ func GetResponseJSON[T any](client *http.Client, req *http.Request, data T) erro
 // GetResponseBytes executes a HTTP request using a HTTP client and reads all bytes from the response. Returns any errors encountered
 func GetResponseBytes(client *http.Client, req *http.Request) ([]byte, error) {
 
+	if DebugRequests {
+		log.Println("COOKIES")
+
+		for _, c := range client.Jar.Cookies(req.URL) {
+			log.Printf("%s - %s\n", c.Name, c.Value)
+		}
+		log.Println("\n\n")
+	}
+
 	res, err := client.Do(req)
 
 	if err != nil {
@@ -153,7 +163,9 @@ func GetResponseBytes(client *http.Client, req *http.Request) ([]byte, error) {
 	b, err := ioutil.ReadAll(res.Body)
 
 	if err == nil && DebugRequests {
+		log.Println("RESPONSE")
 		log.Println(string(b))
+		log.Println("\n\n")
 	}
 	return b, err
 }

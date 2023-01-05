@@ -78,6 +78,12 @@ func (me *Provider) GetTrackingEvents(trackingNumber string) ([]tracking.Event, 
 		return nil, err
 	}
 
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Origin", "https://www.fedex.com")
+	req.Header.Set("Referer", fmt.Sprintf(urlFormat, trackingNumber))
+	req.Header.Set("x-clientid", "WTRK")
+	req.Header.Set("x-version", "1.0.0")
+	req.Header.Set("x-locale", "en_US")
 	token.setRequestAuthorization(req)
 	trackingResponse := &trackingResponse{}
 
