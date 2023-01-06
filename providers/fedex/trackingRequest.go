@@ -33,7 +33,7 @@ func newTrackingRequest(trackingNumber string) *trackingRequest {
 		SupportCurrentLocation: true,
 		UniqueKey:              "",
 		TrackingInfo: []trackingInfo{
-			trackingInfo{
+			{
 				TrackingNumberInfo: trackingNumberInfo{
 					TrackingNumber:    trackingNumber,
 					TrackingQualifier: defaultTrackingQualifier,

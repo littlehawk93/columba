@@ -17,6 +17,7 @@ class EventsDialog extends React.Component
                 open={open}
                 onClose={onClose}
                 disableEscapeKeyDown
+                fullWidth
             >
                 <DialogTitle>Tracking Events</DialogTitle>
                 <DialogContent>
