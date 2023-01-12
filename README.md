@@ -38,7 +38,7 @@ wget -q https://raw.githubusercontent.com/littlehawk93/columba/main/install/inst
 
 The install script will pull the latest version of *Columba* from the GitHub releases and create the necessary service account, directories, and files for Columba to run as a service on your Pi. Once the install script finishes, you can enable the service with the command:
 ```
-service columba enable
+systemctl enable columba
 ```
 and start the webapp using:
 ```

@@ -79,10 +79,10 @@ chown -R columba:columba  /var/log/columba
 chown -R columba:columba /var/data/columba
 chown -R columba:columba /var/www/columba
 
-chmod -R 754 /etc/columba
-chmod -R 754 /var/data/columba
+chmod -R 755 /etc/columba
+chmod -R 755 /var/data/columba
 chmod -R 755 /var/log/columba
-chmod -R 754 /var/www/columba
+chmod -R 755 /var/www/columba
 
 if ! [ -f /etc/columba/config.yaml ];
 then
@@ -96,6 +96,8 @@ webroot: /var/www/columba
 minrefreshtime: 1800
 bgupdatetime: 3600
 EOL
+
+chmod 644 /etc/columba/config.yaml
 fi
 
 if ! [ -f /etc/systemd/system/columba.service ];
@@ -171,7 +173,7 @@ curl -s -L \
 
 rm -f /tmp/releases.json
 
-unzip -qq -d /tmp /tmp/rpi.zip 
+unzip -qq -d /tmp/rpi /tmp/rpi.zip 
 rm -f /tmp/rpi.zip
 
 mv /tmp/rpi/columba /usr/bin
