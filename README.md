@@ -4,6 +4,7 @@ Columba is a self-hosted package tracking system that was designed and tested to
 ## Table of Contents
 
 - [Features](#features)
+- [Supported Trackers](#supported-trackers)
 - [Installation](#installation)
 - [Configuration Settings](#configuration-settings)
 - [Updating Columba](#updating-columba)
@@ -13,6 +14,14 @@ Columba is a self-hosted package tracking system that was designed and tested to
 ## Features
 
 *Columba* has a simple, mobile-friendly web interface for quickly viewing all your active packages. There is a selectable dark or light mode setting, and 3 different UI layouts for different users' preferences. Adding a package requires only the tracking number and shipping service provider, but an optional label can be provided if desired. Packages that have been delivered are highlighted in green, and can be removed from the view to clean up the list of packages if needed.
+
+## Supported Trackers
+*Columba* currently supports the following tracking services:
+
+- UPS
+- USPS
+
+See the [Roadmap](#roadmap) section for planned future support.
 
 ## Installation
 
