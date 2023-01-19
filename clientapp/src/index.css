@@ -1,0 +1,8 @@
+
+input.tracking-number-clipboard {
+    position: absolute;
+    display: inline;
+    left: -2000;
+    top: -2000;
+    z-index: -1;
+}

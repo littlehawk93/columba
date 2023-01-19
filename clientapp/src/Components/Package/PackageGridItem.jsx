@@ -66,7 +66,7 @@ class PackageGridItemBase extends React.Component
 
         return (
             <Grid item xs={12} md={6} lg={4}>
-                <input id={item.id + "-tracking-number-clipboard"} type="hidden" value={item.tracking_number} />
+                <input id={item.id + "-tracking-number-clipboard"} class="tracking-number-clipboard" type="text" value={item.tracking_number} />
                 <Card variant="outlined" sx={{display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%"}}>
                     <CardHeader 
                         title={

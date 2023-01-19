@@ -49,7 +49,7 @@ class PackageTableRowBase extends React.Component
                     {item.label}
                 </TableCell>
                 <TableCell>
-                    <input id={item.id + "-tracking-number-clipboard"} type="hidden" value={item.tracking_number} />
+                    <input id={item.id + "-tracking-number-clipboard"} type="text" class="tracking-number-clipboard" value={item.tracking_number} />
                     <Button startIcon={<ContentCopyIcon />} onClick={onCopyTrackingNumberClick} disabled={popoverShowing} variant="text">{item.tracking_number}</Button>
                 </TableCell>
                 <TableCell>

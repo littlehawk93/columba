@@ -99,22 +99,8 @@ class PackageComponentBase extends React.Component
 
         if (input) {
             const { value } = input;
-            navigator.clipboard.writeText(value).then(() => {
-                this.setState({
-                    showClipboardPopover: true 
-                }, () => {
-                    if(this.props.onShowPopover) {
-                        this.props.onShowPopover(e.target, "Copied to Clipboard", "center", "right", this.onClipboardPopoverClose);
-                    }
-                });
-            }).catch(() => {
-                try
-                {
-                    input.focus();
-                    input.select();
-
-                    document.execCommand("copy");
-
+            try {
+                navigator.clipboard.writeText(value).then(() => {
                     this.setState({
                         showClipboardPopover: true 
                     }, () => {
@@ -122,10 +108,34 @@ class PackageComponentBase extends React.Component
                             this.props.onShowPopover(e.target, "Copied to Clipboard", "center", "right", this.onClipboardPopoverClose);
                         }
                     });
-                }
-                catch (err) {}
-            });
+                }).catch((ex) => {
+                    this.onCopyTrackingNumberBackupMethod(input, e.target);    
+                });
+            } catch (err) {
+                this.onCopyTrackingNumberBackupMethod(input, e.target);
+            }
         }
+    }
+
+    onCopyTrackingNumberBackupMethod = (input, target) => {
+        try {
+            input.focus();
+            input.select();
+
+            document.execCommand("copy");
+
+            this.onShowClipboardPopover(target);
+        } catch (err) {}
+    }
+
+    onShowClipboardPopover = (target) => {
+        this.setState({
+            showClipboardPopover: true 
+        }, () => {
+            if(this.props.onShowPopover) {
+                this.props.onShowPopover(target, "Copied to Clipboard", "center", "right", this.onClipboardPopoverClose);
+            }
+        });
     }
 
     onClipboardPopoverClose = () => {

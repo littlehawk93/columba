@@ -63,7 +63,7 @@ class PackageCardBase extends React.Component
 
         return (
             <Card variant="outlined">
-                <input id={item.id + "-tracking-number-clipboard"} type="hidden" value={item.tracking_number} />
+                <input id={item.id + "-tracking-number-clipboard"} class="tracking-number-clipboard" type="text" value={item.tracking_number} />
                 <CardHeader 
                     title={
                         <Typography variant="h5">{title}</Typography>
