@@ -107,6 +107,23 @@ class PackageComponentBase extends React.Component
                         this.props.onShowPopover(e.target, "Copied to Clipboard", "center", "right", this.onClipboardPopoverClose);
                     }
                 });
+            }).catch(() => {
+                try
+                {
+                    input.focus();
+                    input.select();
+
+                    document.execCommand("copy");
+
+                    this.setState({
+                        showClipboardPopover: true 
+                    }, () => {
+                        if(this.props.onShowPopover) {
+                            this.props.onShowPopover(e.target, "Copied to Clipboard", "center", "right", this.onClipboardPopoverClose);
+                        }
+                    });
+                }
+                catch (err) {}
             });
         }
     }
