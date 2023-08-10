@@ -41,7 +41,7 @@ func UpdatePackageEvents(cfg config.ApplicationConfiguration) error {
 			return fmt.Errorf("unable to get service provider for id '%s'", pkg.ServiceID)
 		}
 
-		events, err := prov.GetTrackingEvents(pkg.TrackingNumber)
+		events, err := prov.GetTrackingEvents(pkg.TrackingNumber, *cfg.Browser)
 
 		if err != nil {
 			tx.Rollback()

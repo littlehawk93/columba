@@ -75,7 +75,7 @@ func getPackageEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newEvents, err := provider.GetTrackingEvents(pkg.TrackingNumber)
+	newEvents, err := provider.GetTrackingEvents(pkg.TrackingNumber, *configuration.Browser)
 
 	if err != nil {
 		writeError(w, err, http.StatusInternalServerError)

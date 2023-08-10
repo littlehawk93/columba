@@ -5,7 +5,7 @@ if [[ $EUID > 0 ]]; then
     exit
 fi
 
-apt-get install jq unzip -y
+apt-get install jq unzip chromium -y
 
 if [[ $version == "" ]];
 then
@@ -92,6 +92,9 @@ database:
 web:
     bind:
     port: 80
+browser:
+    useragent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.102 Safari/537.36
+    timeout: 30
 webroot: /var/www/columba
 minrefreshtime: 1800
 bgupdatetime: 3600

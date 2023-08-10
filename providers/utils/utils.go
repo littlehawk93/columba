@@ -2,16 +2,22 @@ package utils
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/cookiejar"
+	"os"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/chromedp/cdproto/cdp"
+	"github.com/chromedp/chromedp"
 	"github.com/littlehawk93/columba/tracking"
 )
 
@@ -23,23 +29,104 @@ const (
 
 var DebugRequests bool = false
 
-// TrackingEventParser definition for a function that returns a tracking event from an HTML selection
-type TrackingEventParser func(doc *goquery.Selection) (tracking.Event, error)
+// GoqueryTrackingEventParser definition for a function that returns a tracking event from a GoQuery HTML selection
+type GoqueryTrackingEventParser func(doc *goquery.Selection) (tracking.Event, error)
 
-// ParseTrackingEvents helper function for parsing HTML from a given URL and parsing a set of events from the returned response
-func ParseTrackingEvents(url, selector string, parser TrackingEventParser) ([]tracking.Event, error) {
+// ChromeDpTrackingEventParser definition for a function that returns a tracking event from a ChromeDP HTML node
+type ChromeDpTrackingEventParser func(node *cdp.Node) ([]tracking.Event, error)
 
-	results := make([]tracking.Event, 0)
+// ParseTrackingEventsURL helper function for parsing HTML from a given URL and parsing a set of events from the returned response
+func ParseTrackingEventsURL(url, selector string, parser GoqueryTrackingEventParser) ([]tracking.Event, error) {
 
 	res, err := http.Get(url)
 
 	if err != nil {
-		return results, err
+		return nil, fmt.Errorf("[ParseTrackingEventsURL] error retrieving URL: %w", err)
 	}
 
 	defer res.Body.Close()
 
-	document, err := goquery.NewDocumentFromReader(res.Body)
+	return ParseTrackingEventsReader(res.Body, selector, parser)
+}
+
+func ParseTrackingEventsHeadlessChrome(url, selector string, options tracking.Options, provActions []chromedp.Action, parser ChromeDpTrackingEventParser) ([]tracking.Event, error) {
+
+	tmpDir, err := ioutil.TempDir(os.TempDir(), "columba-chrome-headless")
+
+	if err != nil {
+		return nil, fmt.Errorf("[ParseTrackingEventsHeadlessChrome] unable to create temp directory: %w", err)
+	}
+
+	defer func() {
+		time.Sleep(1 * time.Second)
+		os.RemoveAll(tmpDir)
+	}()
+
+	opts := append(chromedp.DefaultExecAllocatorOptions[:],
+		chromedp.DisableGPU,
+		chromedp.NoDefaultBrowserCheck,
+		chromedp.Flag("headless", true),
+		chromedp.Flag("ignore-certificate-errors", true),
+		chromedp.Flag("window-size", "1280x800"),
+		chromedp.UserDataDir(tmpDir),
+		chromedp.UserAgent(options.UserAgent),
+	)
+
+	ctx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
+	defer cancel()
+
+	ctx, cancel = chromedp.NewContext(ctx)
+	defer cancel()
+
+	ctx, cancel = context.WithTimeout(ctx, time.Duration(options.TimeoutSeconds)*time.Second)
+	defer cancel()
+
+	if err := chromedp.Run(ctx); err != nil {
+		return nil, fmt.Errorf("[ParseTrackingEventsHeadlessChrome] error connecting to headless chrome: %w", err)
+	}
+
+	nodes := make([]*cdp.Node, 0)
+
+	actions := []chromedp.Action{
+		chromedp.Navigate(url),
+		chromedp.WaitReady("body", chromedp.BySearch),
+	}
+
+	actions = append(actions, provActions...)
+
+	actions = append(actions, chromedp.Nodes(selector, &nodes))
+
+	if err := chromedp.Run(ctx, actions...); err != nil {
+		return nil, fmt.Errorf("[ParseTrackingEventsHeadlessChrome] error executing chromedp actions: %w", err)
+	}
+
+	results := make([]tracking.Event, 0)
+
+	for _, n := range nodes {
+		events, err := parser(n)
+
+		if err != nil {
+			return nil, fmt.Errorf("[ParseTrackingEventsHeadlessChrome] error parsing HTML node: %w", err)
+		}
+
+		if len(events) > 0 {
+			for _, eve := range events {
+				if eve.EventText != "" || eve.Location != nil || eve.Timestamp != nil {
+					results = append(results, eve)
+				}
+			}
+		}
+	}
+
+	return results, nil
+}
+
+// ParseTrackingEventsReader helper function for parsing HTML from a given reader and parsing a set of events from the returned response
+func ParseTrackingEventsReader(r io.Reader, selector string, parser GoqueryTrackingEventParser) ([]tracking.Event, error) {
+
+	results := make([]tracking.Event, 0)
+
+	document, err := goquery.NewDocumentFromReader(r)
 
 	if err != nil {
 		return results, err
@@ -149,7 +236,7 @@ func GetResponseBytes(client *http.Client, req *http.Request) ([]byte, error) {
 		for _, c := range client.Jar.Cookies(req.URL) {
 			log.Printf("%s - %s\n", c.Name, c.Value)
 		}
-		log.Println("\n\n")
+		log.Print("\n\n\n")
 	}
 
 	res, err := client.Do(req)
@@ -165,7 +252,7 @@ func GetResponseBytes(client *http.Client, req *http.Request) ([]byte, error) {
 	if err == nil && DebugRequests {
 		log.Println("RESPONSE")
 		log.Println(string(b))
-		log.Println("\n\n")
+		log.Print("\n\n\n")
 	}
 	return b, err
 }

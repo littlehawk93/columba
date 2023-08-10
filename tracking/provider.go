@@ -4,5 +4,5 @@ package tracking
 type Provider interface {
 	GetID() string
 	GetTrackingURL(trackingNumber string) string
-	GetTrackingEvents(trackingNumber string) ([]Event, error)
+	GetTrackingEvents(trackingNumber string, options Options) ([]Event, error)
 }

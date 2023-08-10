@@ -7,20 +7,23 @@ import (
 	"strings"
 	"time"
 
-	"github.com/PuerkitoBio/goquery"
+	"github.com/chromedp/cdproto/cdp"
+	"github.com/chromedp/chromedp"
+	"github.com/littlehawk93/columba/cdputils"
 	"github.com/littlehawk93/columba/providers/utils"
 	"github.com/littlehawk93/columba/tracking"
 )
 
 const (
-	urlFormat                     string = "https://tools.usps.com/go/TrackConfirmAction?tLabels=%s"
-	id                            string = "USPS"
-	trackingEventItemSelector     string = "div.current-tracking-status-wrapper div.tb-step"
-	trackingEventDateSelector     string = "p.tb-date"
-	trackingEventStatusSelector   string = "p.tb-status-detail"
-	trackingEventLocationSelector string = "p.tb-location"
-	trackingEventDateFormat       string = "January 2, 2006, 3:04 pm"
-	trackingEventShortDateFormat  string = "January 2, 2006"
+	urlFormat                      string = "https://tools.usps.com/go/TrackConfirmAction?tLabels=%s"
+	id                             string = "USPS"
+	trackingShowMoreButtonSelector string = "a.expand-collapse-history"
+	trackingEventItemSelector      string = "div.tb-step"
+	trackingEventDateClass         string = "tb-date"
+	trackingEventStatusClass       string = "tb-status-detail"
+	trackingEventLocationClass     string = "tb-location"
+	trackingEventDateFormat        string = "January 2, 2006, 3:04 pm"
+	trackingEventShortDateFormat   string = "January 2, 2006"
 )
 
 // Provider extends the service.Provider interface for USPS
@@ -38,38 +41,43 @@ func (me *Provider) GetTrackingURL(trackingNumber string) string {
 }
 
 // GetTrackingEvents get all tracking events for a given tracking number
-func (me *Provider) GetTrackingEvents(trackingNumber string) ([]tracking.Event, error) {
+func (me *Provider) GetTrackingEvents(trackingNumber string, options tracking.Options) ([]tracking.Event, error) {
 
-	return utils.ParseTrackingEvents(me.GetTrackingURL(trackingNumber), trackingEventItemSelector, trackingEventParser)
+	actions := []chromedp.Action{
+		chromedp.WaitVisible(trackingShowMoreButtonSelector),
+		chromedp.Click(trackingShowMoreButtonSelector),
+	}
+
+	return utils.ParseTrackingEventsHeadlessChrome(me.GetTrackingURL(trackingNumber), trackingEventItemSelector, options, actions, trackingEventParserChromeDp)
 }
 
-func trackingEventParser(s *goquery.Selection) (tracking.Event, error) {
+func trackingEventParserChromeDp(n *cdp.Node) ([]tracking.Event, error) {
 
 	event := tracking.Event{}
 
-	if dateElem := s.Find(trackingEventDateSelector).First(); dateElem != nil && len(strings.TrimSpace(dateElem.Text())) > 0 {
-		date, err := cleanAndParseDate(dateElem.Text())
+	if dateNode := cdputils.FirstChildByClass(n, trackingEventDateClass, true); dateNode != nil {
+		date, err := cleanAndParseDate(cdputils.NodeText(dateNode))
 
 		if err != nil {
-			return event, err
+			return []tracking.Event{event}, fmt.Errorf("[trackingEventParserChromeDp] error parsing event timestamp: %w", err)
 		}
 		event.Timestamp = &date
 	}
 
-	if locationElem := s.Find(trackingEventLocationSelector).First(); locationElem != nil && len(strings.TrimSpace(locationElem.Text())) > 0 {
-		location, err := cleanAndParseLocation(locationElem.Text())
+	if locationNode := cdputils.FirstChildByClass(n, trackingEventLocationClass, true); locationNode != nil {
+		location, err := cleanAndParseLocation(cdputils.NodeText(locationNode))
 
 		if err != nil {
-			return event, err
+			return []tracking.Event{event}, fmt.Errorf("[trackingEventParserChromeDp] error parsing event location: %w", err)
 		}
 		event.Location = location
 	}
 
-	if statusElem := s.Find(trackingEventStatusSelector).First(); statusElem != nil && len(strings.TrimSpace(statusElem.Text())) > 0 {
-		event.EventText = strings.TrimSpace(statusElem.Text())
+	if statusNode := cdputils.FirstChildByClass(n, trackingEventStatusClass, true); statusNode != nil {
+		event.EventText = strings.TrimSpace(cdputils.NodeText(statusNode))
 	}
 
-	return event, nil
+	return []tracking.Event{event}, nil
 }
 
 func cleanAndParseDate(dateStr string) (time.Time, error) {

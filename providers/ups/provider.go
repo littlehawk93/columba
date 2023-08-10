@@ -32,7 +32,7 @@ func (me *Provider) GetTrackingURL(trackingNumber string) string {
 }
 
 // GetTrackingEvents get all tracking events for a given tracking number
-func (me *Provider) GetTrackingEvents(trackingNumber string) ([]tracking.Event, error) {
+func (me *Provider) GetTrackingEvents(trackingNumber string, options tracking.Options) ([]tracking.Event, error) {
 
 	client, err := utils.NewClientWithCookies()
 

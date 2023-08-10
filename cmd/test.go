@@ -39,7 +39,7 @@ func executeTest(cmd *cobra.Command, args []string) {
 		log.Fatalf("Invalid provider name '%s'\n", testProviderName)
 	}
 
-	events, err := prov.GetTrackingEvents(testTrackingNumber)
+	events, err := prov.GetTrackingEvents(testTrackingNumber, *configuration.Browser)
 
 	if err != nil {
 		log.Fatal(err)
