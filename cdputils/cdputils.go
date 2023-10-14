@@ -48,10 +48,8 @@ func NodeInnerText(n *cdp.Node) string {
 
 // NodeText returns the inner text of an HTML node
 func NodeText(n *cdp.Node) string {
-	if len(n.Children) > 0 {
-		return n.Children[0].NodeValue
-	}
-	return ""
+
+	return strings.TrimSpace(n.NodeValue)
 }
 
 // HasClass returns true if a node has a particular class, false otherwise

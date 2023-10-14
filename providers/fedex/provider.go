@@ -1,6 +1,7 @@
 package fedex
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 
@@ -43,6 +44,6 @@ func (me *Provider) GetTrackingEvents(trackingNumber string, options tracking.Op
 	return utils.ParseTrackingEventsHeadlessChrome(me.GetTrackingURL(trackingNumber), trackingEventTableRowSelector, options, actions, trackingEventParserChromeDp)
 }
 
-func trackingEventParserChromeDp(n *cdp.Node) ([]tracking.Event, error) {
+func trackingEventParserChromeDp(n *cdp.Node, ctx context.Context) ([]tracking.Event, error) {
 	return nil, nil
 }

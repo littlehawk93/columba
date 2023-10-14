@@ -33,7 +33,7 @@ var DebugRequests bool = false
 type GoqueryTrackingEventParser func(doc *goquery.Selection) (tracking.Event, error)
 
 // ChromeDpTrackingEventParser definition for a function that returns a tracking event from a ChromeDP HTML node
-type ChromeDpTrackingEventParser func(node *cdp.Node) ([]tracking.Event, error)
+type ChromeDpTrackingEventParser func(node *cdp.Node, ctx context.Context) ([]tracking.Event, error)
 
 // ParseTrackingEventsURL helper function for parsing HTML from a given URL and parsing a set of events from the returned response
 func ParseTrackingEventsURL(url, selector string, parser GoqueryTrackingEventParser) ([]tracking.Event, error) {
@@ -51,7 +51,7 @@ func ParseTrackingEventsURL(url, selector string, parser GoqueryTrackingEventPar
 
 func ParseTrackingEventsHeadlessChrome(url, selector string, options tracking.Options, provActions []chromedp.Action, parser ChromeDpTrackingEventParser) ([]tracking.Event, error) {
 
-	tmpDir, err := ioutil.TempDir(os.TempDir(), "columba-chrome-headless")
+	tmpDir, err := os.MkdirTemp(os.TempDir(), "columba-chrome-headless")
 
 	if err != nil {
 		return nil, fmt.Errorf("[ParseTrackingEventsHeadlessChrome] unable to create temp directory: %w", err)
@@ -103,7 +103,7 @@ func ParseTrackingEventsHeadlessChrome(url, selector string, options tracking.Op
 	results := make([]tracking.Event, 0)
 
 	for _, n := range nodes {
-		events, err := parser(n)
+		events, err := parser(n, ctx)
 
 		if err != nil {
 			return nil, fmt.Errorf("[ParseTrackingEventsHeadlessChrome] error parsing HTML node: %w", err)

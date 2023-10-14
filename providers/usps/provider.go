@@ -1,6 +1,7 @@
 package usps
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -8,6 +9,7 @@ import (
 	"time"
 
 	"github.com/chromedp/cdproto/cdp"
+	"github.com/chromedp/cdproto/dom"
 	"github.com/chromedp/chromedp"
 	"github.com/littlehawk93/columba/cdputils"
 	"github.com/littlehawk93/columba/providers/utils"
@@ -44,28 +46,44 @@ func (me *Provider) GetTrackingURL(trackingNumber string) string {
 func (me *Provider) GetTrackingEvents(trackingNumber string, options tracking.Options) ([]tracking.Event, error) {
 
 	actions := []chromedp.Action{
-		chromedp.WaitVisible(trackingShowMoreButtonSelector),
+		chromedp.WaitVisible(trackingShowMoreButtonSelector, chromedp.ByQuery),
 		chromedp.Click(trackingShowMoreButtonSelector),
 	}
 
 	return utils.ParseTrackingEventsHeadlessChrome(me.GetTrackingURL(trackingNumber), trackingEventItemSelector, options, actions, trackingEventParserChromeDp)
 }
 
-func trackingEventParserChromeDp(n *cdp.Node) ([]tracking.Event, error) {
+func trackingEventParserChromeDp(n *cdp.Node, ctx context.Context) ([]tracking.Event, error) {
+
+	if err := chromedp.Run(ctx, chromedp.ActionFunc(func(c context.Context) error {
+		return dom.RequestChildNodes(n.NodeID).WithDepth(-1).Do(c)
+	})); err != nil {
+		return nil, fmt.Errorf("[trackingEventParserChromeDp] error requesting child nodes: %w", err)
+	}
+
+	var children []*cdp.Node
+	chromedp.Run(ctx,
+		chromedp.Nodes(".tb-step > p", &children),
+	)
 
 	event := tracking.Event{}
 
 	if dateNode := cdputils.FirstChildByClass(n, trackingEventDateClass, true); dateNode != nil {
-		date, err := cleanAndParseDate(cdputils.NodeText(dateNode))
 
-		if err != nil {
-			return []tracking.Event{event}, fmt.Errorf("[trackingEventParserChromeDp] error parsing event timestamp: %w", err)
+		dateStr := strings.TrimSpace(cdputils.NodeInnerText(dateNode))
+
+		if dateStr != "" {
+			date, err := cleanAndParseDate(dateStr)
+
+			if err != nil {
+				return []tracking.Event{event}, fmt.Errorf("[trackingEventParserChromeDp] error parsing event timestamp: %w", err)
+			}
+			event.Timestamp = &date
 		}
-		event.Timestamp = &date
 	}
 
 	if locationNode := cdputils.FirstChildByClass(n, trackingEventLocationClass, true); locationNode != nil {
-		location, err := cleanAndParseLocation(cdputils.NodeText(locationNode))
+		location, err := cleanAndParseLocation(cdputils.NodeInnerText(locationNode))
 
 		if err != nil {
 			return []tracking.Event{event}, fmt.Errorf("[trackingEventParserChromeDp] error parsing event location: %w", err)
@@ -74,7 +92,7 @@ func trackingEventParserChromeDp(n *cdp.Node) ([]tracking.Event, error) {
 	}
 
 	if statusNode := cdputils.FirstChildByClass(n, trackingEventStatusClass, true); statusNode != nil {
-		event.EventText = strings.TrimSpace(cdputils.NodeText(statusNode))
+		event.EventText = strings.TrimSpace(cdputils.NodeInnerText(statusNode))
 	}
 
 	return []tracking.Event{event}, nil
