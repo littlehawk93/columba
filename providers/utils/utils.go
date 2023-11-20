@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/cookiejar"
@@ -162,18 +161,13 @@ func ElemExistsWithData(s *goquery.Selection, selector string) (*goquery.Selecti
 	return elem, len(strings.TrimSpace(elem.Text())) > 0
 }
 
-// GetUserAgent retreive a user agent to make Columba requests appear as desktop client apps to tracking websites
-func GetUserAgent() string {
-	return userAgentWin10Edge
-}
-
 // CleanLocationWord cleans a particular city or state name for a location to standardize naming format across all shipping providers
 func CleanLocationWord(word string) string {
 	return strings.ToUpper(regexp.MustCompile(cleanLocationRegexCutset).ReplaceAllString(word, ""))
 }
 
 // CreateJSONRequest creates a new HTTP request, writes JSON data to the request body and sets the User-Agent and Content-Type headers. Returns any errors encountered
-func CreateJSONRequest[T any](method, url string, data T) (*http.Request, error) {
+func CreateJSONRequest[T any](method, url string, data T, options tracking.Options) (*http.Request, error) {
 
 	b, err := json.Marshal(data)
 
@@ -183,7 +177,7 @@ func CreateJSONRequest[T any](method, url string, data T) (*http.Request, error)
 
 	r := bytes.NewReader(b)
 
-	req, err := CreateRequest(method, url, r)
+	req, err := CreateRequest(method, url, r, options)
 
 	if DebugRequests {
 		log.Println(string(b))
@@ -198,7 +192,7 @@ func CreateJSONRequest[T any](method, url string, data T) (*http.Request, error)
 }
 
 // CreateRequest creates a new HTTP request and sets the User-Agent header
-func CreateRequest(method, url string, r io.Reader) (*http.Request, error) {
+func CreateRequest(method, url string, r io.Reader, options tracking.Options) (*http.Request, error) {
 
 	req, err := http.NewRequest(method, url, r)
 
@@ -206,7 +200,7 @@ func CreateRequest(method, url string, r io.Reader) (*http.Request, error) {
 		return nil, err
 	}
 
-	req.Header.Set("User-Agent", GetUserAgent())
+	req.Header.Set("User-Agent", options.UserAgent)
 
 	if DebugRequests {
 		log.Println("REQUEST")
@@ -236,6 +230,12 @@ func GetResponseBytes(client *http.Client, req *http.Request) ([]byte, error) {
 		for _, c := range client.Jar.Cookies(req.URL) {
 			log.Printf("%s - %s\n", c.Name, c.Value)
 		}
+		log.Print("\n\n\nHEADERS\n")
+
+		for v, h := range req.Header {
+			log.Printf("%s - %s\n", v, strings.Join(h, " "))
+		}
+
 		log.Print("\n\n\n")
 	}
 
@@ -247,7 +247,7 @@ func GetResponseBytes(client *http.Client, req *http.Request) ([]byte, error) {
 
 	defer res.Body.Close()
 
-	b, err := ioutil.ReadAll(res.Body)
+	b, err := io.ReadAll(res.Body)
 
 	if err == nil && DebugRequests {
 		log.Println("RESPONSE")

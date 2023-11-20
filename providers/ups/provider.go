@@ -40,7 +40,7 @@ func (me *Provider) GetTrackingEvents(trackingNumber string, options tracking.Op
 		return nil, err
 	}
 
-	req, err := utils.CreateRequest(http.MethodGet, trackingURL, nil)
+	req, err := utils.CreateRequest(http.MethodGet, me.GetTrackingURL(trackingNumber), nil, options)
 
 	if err != nil {
 		return nil, err
@@ -53,7 +53,9 @@ func (me *Provider) GetTrackingEvents(trackingNumber string, options tracking.Op
 	if req, err = utils.CreateJSONRequest(http.MethodPost, apiUrl, &trackingRequest{
 		Locale:          "en_US",
 		TrackingNumbers: []string{trackingNumber},
-	}); err != nil {
+		Requester:       "st/trackdetails",
+		ReturnToValue:   "",
+	}, options); err != nil {
 		return nil, err
 	}
 
